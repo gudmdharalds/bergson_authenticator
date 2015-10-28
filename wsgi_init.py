@@ -1,5 +1,5 @@
 
-from authenticator import *
+from ba_core import *
 
 import os
 import pprint
