@@ -16,16 +16,13 @@ import wsgiref.simple_server as wsgi_simple_server
 # Import config-file
 from config import *
 
-# FIXME: Prefix for functions
-# FIXME: New name for the program
-# FIXME: Re-read all comments
 # FIXME: Restructure the file
 
 if (BA_AUTH_MOHAWK_ENABLED == 1):
 	import mohawk
 
 
-class PathDispatcher:
+class BAPathDispatcher:
 	"""
 	Directs requests to path, using methods specified,
 	to the appropriate handler. Will handle each request
@@ -108,7 +105,7 @@ class PathDispatcher:
 		else:
 			pass
 
-		handler = self.pathmap.get((method,path), http_resp_404)
+		handler = self.pathmap.get((method,path), ba_http_resp_404)
 
 		return handler(http_environ, start_response)
 
@@ -125,22 +122,22 @@ class PathDispatcher:
 # Database stuff
 #
 
-def db_connect():
+def ba_db_connect():
 	"""
 	Try to connect to DB, as per configuration.
 	"""
 
-	db_conn = MySQLdb.connect(BA_AUTH_DB_SERVER, AUTHENTICATOR_DB_USERNAME, 
-		BA_AUTH_DB_PASSWORD, AUTHENTICATOR_DB_USERNAME)
+	db_conn = MySQLdb.connect(BA_AUTH_DB_SERVER, BA_AUTH_DB_USERNAME, 
+		BA_AUTH_DB_PASSWORD, BA_AUTH_DB_USERNAME)
 
 	return db_conn
 
-def db_create_tables():
+def ba_db_create_tables():
 	"""
 	Create tables to store our data.
 	"""
 
-	db_conn = db_connect()
+	db_conn = ba_db_connect()
 
 	db_cursor = db_conn.cursor()
 
@@ -177,16 +174,16 @@ def db_create_tables():
 # Handle reporting to caller 
 #
 
-def http_resp_404(http_environ, start_response):
+def ba_http_resp_404(http_environ, start_response):
 	""" 
 	Handle when paths are not found by dispatcher. 
 	This function will return with HTTP 404 error,
 	and a JSON string with error message.
 	"""
 
-	return http_resp_json(None, start_response, 404, {'error': 'Not found'})
+	return ba_http_resp_json(None, start_response, 404, {'error': 'Not found'})
 	
-def http_resp_json(req_validate_sig_res, start_response, http_resp_num, json_data):
+def ba_http_resp_json(ba_sig_res, start_response, ba_http_resp_num, json_data):
 	"""
 	Return a HTTP status, and a JSON response.
 	The JSON-data is specified by json_data,
@@ -196,10 +193,10 @@ def http_resp_json(req_validate_sig_res, start_response, http_resp_num, json_dat
 	resp_header_content_type = 'application/json'
 	resp_body = json.dumps(json_data)
 
-	if ((http_resp_num >= 200) and (http_resp_num <= 299)):
+	if ((ba_http_resp_num >= 200) and (ba_http_resp_num <= 299)):
 		resp_status_text = 'OK'
 
-	elif (http_resp_num == 404):
+	elif (ba_http_resp_num == 404):
 		resp_status_text = 'Not Found'
 
 	else:
@@ -216,12 +213,12 @@ def http_resp_json(req_validate_sig_res, start_response, http_resp_num, json_dat
 	# attempt to digitally sign our response.
 	#
 
-	if (req_validate_sig_res is not None):
-		req_validate_sig_res.respond(content=resp_body,
+	if (ba_sig_res is not None):
+		ba_sig_res.respond(content=resp_body,
 				content_type=resp_header_content_type)
 
 		resp_headers.append( 
-			( 'Server-Authorization', req_validate_sig_res.response_header.encode("ascii") ) 
+			( 'Server-Authorization', ba_sig_res.response_header.encode("ascii") ) 
 		)
 
 
@@ -233,7 +230,7 @@ def http_resp_json(req_validate_sig_res, start_response, http_resp_num, json_dat
 # Input check routines
 #
 
-def req_input_check_username(username_str):
+def ba_req_input_check_username(username_str):
 	"""
 	Do an input check on username. It must adhere
 	to specific requirements (a-z (lowercase), 0-9 only, 
@@ -255,7 +252,7 @@ def req_input_check_username(username_str):
 	return True
 
 
-def req_input_check_password(password_str):
+def ba_req_input_check_password(password_str):
 	"""
 	Do input check on password. Only allow
 	printable ASCII characters. Minimum length
@@ -287,7 +284,7 @@ def req_input_check_password(password_str):
 # Mohawk related functions
 #
 
-def req_validate_signature_lookup_sender(sender_id):
+def ba_signature_lookup_sender(sender_id):
 	"""
 	Check if we got anything on this sender_id. 
 	This would be found in our configuration file.
@@ -300,7 +297,7 @@ def req_validate_signature_lookup_sender(sender_id):
 	else:
 		raise LookupError('unknown sender')
 
-def req_validate_signature(db_conn, http_environ, data):
+def ba_signature(db_conn, http_environ, data):
 	"""
 	Validate request-signature from other end. 
 	Make sure it has a valid digital signature,
@@ -323,7 +320,7 @@ def req_validate_signature(db_conn, http_environ, data):
 
 	"""
 
-	def req_validate_signature_nonce_seen(sender_id, nonce, timestamp):
+	def ba_signature_nonce_seen(sender_id, nonce, timestamp):
 		"""
 		Check if we have already seen this sender_id + nonce token + timestamp. 
 		We do this by look for it in our DB, and if it is not found, we record it
@@ -397,15 +394,15 @@ def req_validate_signature(db_conn, http_environ, data):
 		# problem with it.
 		#
 
-		req_validate_sig_res = mohawk.Receiver(
-			req_validate_signature_lookup_sender, 		# Provide callback function to look up caller ID 
+		ba_sig_res = mohawk.Receiver(
+			ba_signature_lookup_sender, 		# Provide callback function to look up caller ID 
 			http_environ['HTTP_AUTHORIZATION'], 		# HTTP authorization header (only contents of it)
 			'http://' + http_environ['HTTP_HOST'] + http_environ['PATH_INFO'], # Construct the URL called
 			http_environ['REQUEST_METHOD'], 		# Request method type
 			content=data.encode("utf8"), 			# UTF-8 encode the data
 			content_type=http_environ['CONTENT_TYPE'],	# Content-type header used
 			timestamp_skew_in_seconds=BA_AUTH_MOHAWK_NONCE_EXPIRY,	# Default expiry of nonce tokens
-			seen_nonce=req_validate_signature_nonce_seen	# nonce token checker
+			seen_nonce=ba_signature_nonce_seen	# nonce token checker
 		)
 
 	# If verification is OFF, we should FAIL if users DO send
@@ -417,13 +414,13 @@ def req_validate_signature(db_conn, http_environ, data):
 
 		return None
 
-	return req_validate_sig_res
+	return ba_sig_res
 		
 #
 # Functions to handle password-hashing
 #
 
-def password_create_salt():
+def ba_password_create_salt():
 	"""
 	Generate 16 bytes of random salt.
 	Make sure that the bytes are ASCII encoded,
@@ -433,7 +430,7 @@ def password_create_salt():
 	return binascii.b2a_base64(os.urandom(16)).strip().strip('\n').strip('\r').strip(' ')
 
 
-def password_hashing(password_str, salt):
+def ba_password_hashing(password_str, salt):
 	"""
 	Create SHA256 hash from given password, using given salt. 
 	Will return hash as a hex string.
@@ -444,20 +441,20 @@ def password_hashing(password_str, salt):
 	return binascii.hexlify(dk)
 
 
-def req_input_password_verify(req_password_str, db_password_hashed, db_salt):
+def ba_req_input_password_verify(req_password_str, db_password_hashed, db_salt):
 	"""
 	Verify if given req_password_str matches given db_password_hashed, 
 	after hashing the first with the given db_salt.
 	"""
 
-	return password_hashing(req_password_str, db_salt) == db_password_hashed
+	return ba_password_hashing(req_password_str, db_salt) == db_password_hashed
 
 
 #
 # Deal with HTTP requests from callers.
 #
 
-def authenticator_authenticate(http_environ, start_response):
+def ba_handler_authenticate(http_environ, start_response):
 	"""
 	Try to authenticate user using JSON request-data.
 	"""
@@ -471,35 +468,35 @@ def authenticator_authenticate(http_environ, start_response):
 
 	except KeyError:
 		# That failed, inform user that the resource does not exist.
-		return http_resp_json(None, start_response, 400, { 'error' : 'Username and/or password missing' } )
+		return ba_http_resp_json(None, start_response, 400, { 'error' : 'Username and/or password missing' } )
 
 	#
 	# Connect to DB
 	#
 
 	try:
-		db_conn = db_connect()
+		db_conn = ba_db_connect()
 
 	except:
-		return http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })	
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })	
         
 	#
 	# Check if username is acceptable
 	# by our policy
 	#
 
-	if (req_input_check_username(req_username) != True):
-		return http_resp_json(None, start_response, 406, { 'error': 'Username is not acceptable' })
+	if (ba_req_input_check_username(req_username) != True):
+		return ba_http_resp_json(None, start_response, 406, { 'error': 'Username is not acceptable' })
 
 	#
 	# Check if signature of request validates.
 	#
 
 	try:
-		req_validate_sig_res = req_validate_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
+		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
 
 	except:
-		return http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
+		return ba_http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
 
 
 	# Got some input, try to find a match in the DB.
@@ -513,7 +510,7 @@ def authenticator_authenticate(http_environ, start_response):
 
 	except:
 		# Inform about DB error
-		return http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
 
 	#
 	# Try to fetch something from DB,
@@ -528,7 +525,7 @@ def authenticator_authenticate(http_environ, start_response):
 
 	except:
 		# Inform about DB error
-		return http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
 
 	#
 	# Now we should have gotten something,
@@ -543,18 +540,18 @@ def authenticator_authenticate(http_environ, start_response):
 		# (and is associated with this user).
 		#
 
-		auth_ok = req_input_password_verify(req_password, db_user_info[0][1], db_user_info[0][2])
+		auth_ok = ba_req_input_password_verify(req_password, db_user_info[0][1], db_user_info[0][2])
 
 		if (auth_ok == True):
 			# Matches hash, return 200 and JSON-string indicated 
 			# that the user is authenticated.
 
-			return http_resp_json(req_validate_sig_res, start_response, 200, {'status': 1, 'authenticated': auth_ok })
+			return ba_http_resp_json(ba_sig_res, start_response, 200, {'status': 1, 'authenticated': auth_ok })
 	
-	return http_resp_json(req_validate_sig_res, start_response, 403, { 'error': 'Access denied' })
+	return ba_http_resp_json(ba_sig_res, start_response, 403, { 'error': 'Access denied' })
 
 			
-def authenticator_user_create(http_environ, start_response):
+def ba_handler_user_create(http_environ, start_response):
 	"""
 	Create user, given username and password from JSON request.
 	Will do various checks of username and password, and hash 
@@ -570,25 +567,25 @@ def authenticator_user_create(http_environ, start_response):
 
 	except KeyError:
 		# That failed, inform user that the resource does not exist.
-		return http_resp_json(None, start_response, 400, { 'error': 'Username and/or password missing' })
+		return ba_http_resp_json(None, start_response, 400, { 'error': 'Username and/or password missing' })
 
 	# Got some input, connect to DB
 	try:
-		db_conn = db_connect()
+		db_conn = ba_db_connect()
 
 	except:
 		# Inform about DB error
-		return http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
 
 	#
 	# Check if signature of request validates.
 	#
 
 	try:
-		req_validate_sig_res = req_validate_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
+		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
 
 	except:
-		return http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
+		return ba_http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
 
 
 	#
@@ -596,16 +593,16 @@ def authenticator_user_create(http_environ, start_response):
 	# by our policy
 	#
 
-	if (req_input_check_username(req_username) != True):
-		return http_resp_json(None, start_response, 406, { 'error': 'Username is not acceptable' })
+	if (ba_req_input_check_username(req_username) != True):
+		return ba_http_resp_json(None, start_response, 406, { 'error': 'Username is not acceptable' })
 
 	#
 	# Check if password is acceptable
 	# by our policy
 	#
 
-	if (req_input_check_password(req_password) != True):
-		return http_resp_json(None, start_response, 406, { 'error': 'Password is not acceptable' })
+	if (ba_req_input_check_password(req_password) != True):
+		return ba_http_resp_json(None, start_response, 406, { 'error': 'Password is not acceptable' })
 
 
 	#
@@ -623,11 +620,11 @@ def authenticator_user_create(http_environ, start_response):
 		db_cursor.close()
 
 	except:
-		return http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
 
 	# Check if user already exists
 	if (len(db_user_info) != 0):
-		return http_resp_json(req_validate_sig_res, start_response, 422, { 'error': 'Username exists' })
+		return ba_http_resp_json(ba_sig_res, start_response, 422, { 'error': 'Username exists' })
 
 	# Now create random salt, and create
 	# hash of given password using that.
@@ -635,8 +632,8 @@ def authenticator_user_create(http_environ, start_response):
 	# in DB, plus creation timestamp.
 	#
 
-	rand_salt = password_create_salt()
-	req_password_hashed = password_hashing(req_password, rand_salt)
+	rand_salt = ba_password_create_salt()
+	req_password_hashed = ba_password_hashing(req_password, rand_salt)
 
 	try:
 		db_cursor = db_conn.cursor()
@@ -649,12 +646,12 @@ def authenticator_user_create(http_environ, start_response):
 		db_conn.commit()
 
 	except:
-		return http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
 
-	return http_resp_json(req_validate_sig_res, start_response, 200, { 'status': 1, 'username': req_username })
+	return ba_http_resp_json(ba_sig_res, start_response, 200, { 'status': 1, 'username': req_username })
 
 
-def authenticator_user_exists(http_environ, start_response):
+def ba_handler_user_exists(http_environ, start_response):
 	"""
 	Check if user exists, given username in JSON request.
 	"""
@@ -667,26 +664,26 @@ def authenticator_user_exists(http_environ, start_response):
 
 	except KeyError:
 		# That failed, inform user that the resource does not exist.
-		return http_resp_json(None, start_response, 400, { 'error': 'Username missing' })
+		return ba_http_resp_json(None, start_response, 400, { 'error': 'Username missing' })
 
 
 	# Got some input, connect to DB
 	try:
-		db_conn = db_connect()
+		db_conn = ba_db_connect()
 
 	except:
 		# Inform about DB error
-		return http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
 
 	#
 	# Check if signature of request validates.
 	#
 
 	try:
-		req_validate_sig_res = req_validate_signature(db_conn, http_environ, 'username=' + req_username)
+		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username)
 
 	except:
-		return http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
+		return ba_http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
 
 
 	#
@@ -694,8 +691,8 @@ def authenticator_user_exists(http_environ, start_response):
 	# by our policy
 	#
 
-	if (req_input_check_username(req_username) != True):
-		return http_resp_json(req_validate_sig_res, start_response, 406, { 'error': 'Username is not acceptable' })
+	if (ba_req_input_check_username(req_username) != True):
+		return ba_http_resp_json(ba_sig_res, start_response, 406, { 'error': 'Username is not acceptable' })
 
 	#
 	# New see if user already exists 
@@ -712,17 +709,17 @@ def authenticator_user_exists(http_environ, start_response):
 		db_cursor.close()
 	
 	except:
-		return http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
 
 	# Check if user already exists
 	if (len(db_user_info) == 1):
-		return http_resp_json(req_validate_sig_res, start_response, 200, { 'status': 1, 'message': 'Username exists' })
+		return ba_http_resp_json(ba_sig_res, start_response, 200, { 'status': 1, 'message': 'Username exists' })
 	
 	else:
-		return http_resp_json(req_validate_sig_res, start_response, 404, { 'error': 'Username does not exist' })
+		return ba_http_resp_json(ba_sig_res, start_response, 404, { 'error': 'Username does not exist' })
 
 
-def authenticator_user_passwordchange(http_environ, start_response):
+def ba_handler_user_passwordchange(http_environ, start_response):
 	"""
 	Change password for user, given JSON data.
 	"""
@@ -736,16 +733,16 @@ def authenticator_user_passwordchange(http_environ, start_response):
 
 	except KeyError:
 		# That failed, inform user that the resource does not exist.
-		return http_resp_json(None, start_response, 400, { 'error': 'Username and/or password missing' })
+		return ba_http_resp_json(None, start_response, 400, { 'error': 'Username and/or password missing' })
 
 
 	# Got some input, connect to DB
 	try:
-		db_conn = db_connect()
+		db_conn = ba_db_connect()
 
 	except:
 		# Inform about DB error
-		return http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
 
 
 	#
@@ -753,10 +750,10 @@ def authenticator_user_passwordchange(http_environ, start_response):
 	#
 
 	try:
-		req_validate_sig_res = req_validate_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
+		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
 
 	except:
-		return http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
+		return ba_http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
 
 
 	#
@@ -764,8 +761,8 @@ def authenticator_user_passwordchange(http_environ, start_response):
 	# by our policy
 	#
 
-	if (req_input_check_username(req_username) != True):
-		return http_resp_json(req_validate_sig_res, start_response, 406, { 'error': 'Username is not acceptable' })
+	if (ba_req_input_check_username(req_username) != True):
+		return ba_http_resp_json(ba_sig_res, start_response, 406, { 'error': 'Username is not acceptable' })
 
         
 	#
@@ -773,8 +770,8 @@ def authenticator_user_passwordchange(http_environ, start_response):
 	# by our policy
 	#
 
-	if (req_input_check_password(req_password) != True):
-		return http_resp_json(req_validate_sig_res, start_response, 406, { 'error': 'Password is not acceptable' })
+	if (ba_req_input_check_password(req_password) != True):
+		return ba_http_resp_json(ba_sig_res, start_response, 406, { 'error': 'Password is not acceptable' })
 
 
 	#
@@ -791,11 +788,11 @@ def authenticator_user_passwordchange(http_environ, start_response):
 		db_cursor.close()
 	
 	except:
-		return http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
 
 	# Check if user already exists
 	if (len(db_user_info) == 0):
-		return http_resp_json(req_validate_sig_res, start_response, 404, { 'error': 'Username does not exist' })
+		return ba_http_resp_json(ba_sig_res, start_response, 404, { 'error': 'Username does not exist' })
 
 
 	#
@@ -803,8 +800,8 @@ def authenticator_user_passwordchange(http_environ, start_response):
 	#
 
 	timestamp_now = int(time.time())	
-	rand_salt = password_create_salt()
-	req_password_hashed = password_hashing(req_password, rand_salt)
+	rand_salt = ba_password_create_salt()
+	req_password_hashed = ba_password_hashing(req_password, rand_salt)
 
 	try:
 		db_cursor = db_conn.cursor()
@@ -814,20 +811,20 @@ def authenticator_user_passwordchange(http_environ, start_response):
 		db_conn.commit()
 
 	except:
-		return http_resp_json(None, start_response, 500, { 'error': 'User-information could not be updated' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'User-information could not be updated' })
 
-	return http_resp_json(req_validate_sig_res, start_response, 200, {'status': 1, 'message': 'Updated password' })
+	return ba_http_resp_json(ba_sig_res, start_response, 200, {'status': 1, 'message': 'Updated password' })
 
 
-def authenticator_user_enable(http_environ, start_response):
+def ba_handler_user_enable(http_environ, start_response):
 	""" Enable user. Calls another function to perform the operation. """
-	return authenticator_user_enable_or_disable(http_environ, start_response, 1)
+	return ba_handler_user_enable_or_disable(http_environ, start_response, 1)
 
-def authenticator_user_disable(http_environ, start_response):
+def ba_handler_user_disable(http_environ, start_response):
 	""" Disable user. Calls another function to perform the operation. """
-	return authenticator_user_enable_or_disable(http_environ, start_response, 0)
+	return ba_handler_user_enable_or_disable(http_environ, start_response, 0)
 
-def authenticator_user_enable_or_disable(http_environ, start_response, enable_user):
+def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user):
 	"""
 	Disable or enable specified user.
 	"""
@@ -840,15 +837,15 @@ def authenticator_user_enable_or_disable(http_environ, start_response, enable_us
 
 	except KeyError:
 		# That failed, inform user that the resource does not exist.
-		return http_resp_json(None, start_response, 400, { 'error': 'Username missing' })
+		return ba_http_resp_json(None, start_response, 400, { 'error': 'Username missing' })
 
 	# Got some input, connect to DB
 	try:
-		db_conn = db_connect()
+		db_conn = ba_db_connect()
 
 	except:
 		# Inform about DB error
-		return http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
 
 
 	#
@@ -856,8 +853,8 @@ def authenticator_user_enable_or_disable(http_environ, start_response, enable_us
 	# by our policy
 	#
 
-	if (req_input_check_username(req_username) != True):
-		return http_resp_json(None, start_response, 406, { 'error': 'Username is not acceptable' })
+	if (ba_req_input_check_username(req_username) != True):
+		return ba_http_resp_json(None, start_response, 406, { 'error': 'Username is not acceptable' })
 
  
 	#
@@ -865,10 +862,10 @@ def authenticator_user_enable_or_disable(http_environ, start_response, enable_us
 	#
 
 	try:
-		req_validate_sig_res = req_validate_signature(db_conn, http_environ, 'username=' + req_username)
+		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username)
 
 	except:
-		return http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
+		return ba_http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
 
       
 	#
@@ -884,10 +881,10 @@ def authenticator_user_enable_or_disable(http_environ, start_response, enable_us
 		db_cursor.close()
 	
 	except:
-		return http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
 
 	if (len(db_user_info) != 1):
-		return http_resp_json(req_validate_sig_res, start_response, 404, { 'error': 'Username does not exist' })
+		return ba_http_resp_json(ba_sig_res, start_response, 404, { 'error': 'Username does not exist' })
 
 	#
 	# Ok, user exists, then enable or disable user
@@ -903,23 +900,23 @@ def authenticator_user_enable_or_disable(http_environ, start_response, enable_us
 		db_conn.commit()
 
 	except:
-		return http_resp_json(None, start_response, 500, { 'error': 'User-information could not be updated' })
+		return ba_http_resp_json(None, start_response, 500, { 'error': 'User-information could not be updated' })
 
-	return http_resp_json(req_validate_sig_res, start_response, 200, {'status': 1, 'message': 'User ' + ('enabled' if enable_user == 1 else 'disabled') })
+	return ba_http_resp_json(ba_sig_res, start_response, 200, {'status': 1, 'message': 'User ' + ('enabled' if enable_user == 1 else 'disabled') })
 
-def authenticator_health(http_environ, start_response):
-	return http_resp_json(None, start_response, 200, {'status': 1 })
+def ba_handler_health(http_environ, start_response):
+	return ba_http_resp_json(None, start_response, 200, {'status': 1 })
 
-def dispatcher_init():
-	dispatcher = PathDispatcher()
-	dispatcher.register('POST', '/create', authenticator_user_create)
-	dispatcher.register('PUT', '/passwordchange', authenticator_user_passwordchange)
-	dispatcher.register('POST', '/authenticate', authenticator_authenticate)
-	dispatcher.register('GET', '/exists', authenticator_user_exists)
-	dispatcher.register('PUT', '/disable', authenticator_user_disable)
-	dispatcher.register('PUT', '/enable', authenticator_user_enable)
+def ba_dispatcher_init():
+	dispatcher = BAPathDispatcher()
+	dispatcher.register('POST', '/create', ba_handler_user_create)
+	dispatcher.register('PUT', '/passwordchange', ba_handler_user_passwordchange)
+	dispatcher.register('POST', '/authenticate', ba_handler_authenticate)
+	dispatcher.register('GET', '/exists', ba_handler_user_exists)
+	dispatcher.register('PUT', '/disable', ba_handler_user_disable)
+	dispatcher.register('PUT', '/enable', ba_handler_user_enable)
 
-	dispatcher.register('GET', '/v1/health', authenticator_health)
+	dispatcher.register('GET', '/v1/health', ba_handler_health)
 
 	# FIXME: Implement OPTIONS
 
