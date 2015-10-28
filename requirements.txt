@@ -1,0 +1,6 @@
+MySQL-python==1.2.5
+backports.pbkdf2==0.1
+mohawk==0.3.0
+requests==2.8.1
+six==1.10.0
+wsgiref==0.1.2
