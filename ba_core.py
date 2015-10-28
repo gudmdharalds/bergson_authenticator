@@ -909,12 +909,12 @@ def ba_handler_health(http_environ, start_response):
 
 def ba_dispatcher_init():
 	dispatcher = BAPathDispatcher()
-	dispatcher.register('POST', '/create', ba_handler_user_create)
-	dispatcher.register('PUT', '/passwordchange', ba_handler_user_passwordchange)
-	dispatcher.register('POST', '/authenticate', ba_handler_authenticate)
-	dispatcher.register('GET', '/exists', ba_handler_user_exists)
-	dispatcher.register('PUT', '/disable', ba_handler_user_disable)
-	dispatcher.register('PUT', '/enable', ba_handler_user_enable)
+	dispatcher.register('POST', '/v1/create', ba_handler_user_create)
+	dispatcher.register('PUT', '/v1/passwordchange', ba_handler_user_passwordchange)
+	dispatcher.register('POST', '/v1/authenticate', ba_handler_authenticate)
+	dispatcher.register('GET', '/v1/exists', ba_handler_user_exists)
+	dispatcher.register('PUT', '/v1/disable', ba_handler_user_disable)
+	dispatcher.register('PUT', '/v1/enable', ba_handler_user_enable)
 
 	dispatcher.register('GET', '/v1/health', ba_handler_health)
 

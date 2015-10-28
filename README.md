@@ -18,13 +18,13 @@ Note: If Mohawk is disabled, but clients still issue Authorization-headers, the 
 
 The webservice is RESTful, and allows the following calls to be made:
 
-- /create (POST): Create a new user that will be enabled.
+- /v1/create (POST): Create a new user that will be enabled.
 
 
 ``` 
 
 For instance, one might use cURL to send a request, like this:
-$ curl -i  -X POST -H 'Authorization: Hawk ... ' -H 'application/json' -d '{"username":"myusername", "password":"999"}' http://server:port/create 
+$ curl -i  -X POST -H 'Authorization: Hawk ... ' -H 'application/json' -d '{"username":"myusername", "password":"999"}' http://server:port/v1/create 
 
 And the server would respond like this:
 
@@ -37,7 +37,7 @@ Content-type: application/json
 
 Upon failure (Authorization-header skipped from now on):
 
-$ curl -i  -X POST -H 'application/json' -d '{"username":"myusername", "password":"999"}' http://server:port/create ; echo ""
+$ curl -i  -X POST -H 'application/json' -d '{"username":"myusername", "password":"999"}' http://server:port/v1/create ; echo ""
 HTTP/1.0 422 Error
 Date: Wed, 21 Oct 2015 00:29:46 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -53,7 +53,7 @@ Content-type: application/json
 
 For example:
 
-$ curl -i  -X POST -H 'application/json' -d '{"username":"myusername", "password":"999"}' http://server:port/authenticate 
+$ curl -i  -X POST -H 'application/json' -d '{"username":"myusername", "password":"999"}' http://server:port/v1/authenticate 
 
 HTTP/1.0 200 OK
 Date: Wed, 21 Oct 2015 00:28:35 GMT
@@ -64,7 +64,7 @@ Content-type: application/json
 
 And upon failure:
 
-$ curl -i  -X POST -H 'application/json' -d '{"username":"myusername", "password":"112"}' http://server:port/authenticate 
+$ curl -i  -X POST -H 'application/json' -d '{"username":"myusername", "password":"112"}' http://server:port/v1/authenticate 
 HTTP/1.0 403 Error
 Date: Wed, 21 Oct 2015 00:30:23 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -80,7 +80,7 @@ Content-type: application/json
 
 For example:
 
-$ curl -i  -X GET -H 'application/json' -d '{"username":"myusername"}' http://server:port/exists 
+$ curl -i  -X GET -H 'application/json' -d '{"username":"myusername"}' http://server:port/v1/exists 
 HTTP/1.0 200 OK
 Date: Wed, 21 Oct 2015 00:33:24 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -90,7 +90,7 @@ Content-type: application/json
 
 And upon failure:
 
-$ curl -i  -X GET -H 'application/json' -d '{"username":"myusername2"}' http://server:port/exists 
+$ curl -i  -X GET -H 'application/json' -d '{"username":"myusername2"}' http://server:port/v1/exists 
 HTTP/1.0 404 Error
 Date: Wed, 21 Oct 2015 00:33:32 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -106,7 +106,7 @@ Content-type: application/json
 
 For example:
 
-$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername", "password": "000"}' http://server:port/passwordchange ; echo ""
+$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername", "password": "000"}' http://server:port/v1/passwordchange ; echo ""
 HTTP/1.0 200 OK
 Date: Wed, 21 Oct 2015 00:35:26 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -116,7 +116,7 @@ Content-type: application/json
 
 And upon failure:
 
-$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername", "password": "000æ"}' http://server:port/passwordchange ; echo ""
+$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername", "password": "000æ"}' http://server:port/v1/passwordchange ; echo ""
 HTTP/1.0 406 Error
 Date: Wed, 21 Oct 2015 00:35:51 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -132,7 +132,7 @@ Content-type: application/json
 
 For example:
 
-$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername"}' http://server:port/disable ; echo ""
+$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername"}' http://server:port/v1/disable ; echo ""
 HTTP/1.0 200 OK
 Date: Wed, 21 Oct 2015 00:36:16 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -142,7 +142,7 @@ Content-type: application/json
 
 And upon failure:
 
-$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername2"}' http://server:port/disable ; echo ""
+$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername2"}' http://server:port/v1/disable ; echo ""
 HTTP/1.0 404 Error
 Date: Wed, 21 Oct 2015 00:36:33 GMT
 Server: WSGIServer/0.1 Python/2.7.5
