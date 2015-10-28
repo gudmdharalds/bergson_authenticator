@@ -28,9 +28,9 @@ if __name__ == '__main__':
 
 	dispatcher = dispatcher_init()
 
-	httpd = wsgi_simple_server.make_server(AUTHENTICATOR_SERVER_ADDR, AUTHENTICATOR_SERVER_PORT, dispatcher)
+	httpd = wsgi_simple_server.make_server(BA_AUTH_SERVER_ADDR, AUTHENTICATOR_SERVER_PORT, dispatcher)
 
-	print('Now serving on port ' + AUTHENTICATOR_SERVER_ADDR + ':' + str(AUTHENTICATOR_SERVER_PORT))
+	print('Now serving on port ' + BA_AUTH_SERVER_ADDR + ':' + str(AUTHENTICATOR_SERVER_PORT))
 	print('Waiting for requests ... ')
 
 	httpd.serve_forever()

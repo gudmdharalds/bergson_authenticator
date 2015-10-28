@@ -21,7 +21,7 @@ from config import *
 # FIXME: Re-read all comments
 # FIXME: Restructure the file
 
-if (AUTHENTICATOR_MOHAWK_ENABLED == 1):
+if (BA_AUTH_MOHAWK_ENABLED == 1):
 	import mohawk
 
 
@@ -130,8 +130,8 @@ def db_connect():
 	Try to connect to DB, as per configuration.
 	"""
 
-	db_conn = MySQLdb.connect(AUTHENTICATOR_DB_SERVER, AUTHENTICATOR_DB_USERNAME, 
-		AUTHENTICATOR_DB_PASSWORD, AUTHENTICATOR_DB_USERNAME)
+	db_conn = MySQLdb.connect(BA_AUTH_DB_SERVER, AUTHENTICATOR_DB_USERNAME, 
+		BA_AUTH_DB_PASSWORD, AUTHENTICATOR_DB_USERNAME)
 
 	return db_conn
 
@@ -294,8 +294,8 @@ def req_validate_signature_lookup_sender(sender_id):
 	This includes unique secret key.
 	"""
 
-	if (AUTHENTICATOR_MOHAWK_SENDERS.has_key(sender_id)):
-		return AUTHENTICATOR_MOHAWK_SENDERS[sender_id]
+	if (BA_AUTH_MOHAWK_SENDERS.has_key(sender_id)):
+		return BA_AUTH_MOHAWK_SENDERS[sender_id]
 
 	else:
 		raise LookupError('unknown sender')
@@ -345,7 +345,7 @@ def req_validate_signature(db_conn, http_environ, data):
 
 		if (random.randint(0, 100) <= 2):
 			db_cursor = db_conn.cursor()
-			db_cursor.execute("DELETE FROM nonce WHERE timestamp < %s", [timestamp_now - (AUTHENTICATOR_MOHAWK_NONCE_EXPIRY * 10)] )
+			db_cursor.execute("DELETE FROM nonce WHERE timestamp < %s", [timestamp_now - (BA_AUTH_MOHAWK_NONCE_EXPIRY * 10)] )
 			db_cursor.close()
 
 			db_conn.commit()
@@ -390,7 +390,7 @@ def req_validate_signature(db_conn, http_environ, data):
 		###################
 
 
-	if (AUTHENTICATOR_MOHAWK_ENABLED == 1):
+	if (BA_AUTH_MOHAWK_ENABLED == 1):
 		#
 		# Try to verify authenticity of the request received --
 		# an exception will be raised by Mohawk if there is any
@@ -404,7 +404,7 @@ def req_validate_signature(db_conn, http_environ, data):
 			http_environ['REQUEST_METHOD'], 		# Request method type
 			content=data.encode("utf8"), 			# UTF-8 encode the data
 			content_type=http_environ['CONTENT_TYPE'],	# Content-type header used
-			timestamp_skew_in_seconds=AUTHENTICATOR_MOHAWK_NONCE_EXPIRY,	# Default expiry of nonce tokens
+			timestamp_skew_in_seconds=BA_AUTH_MOHAWK_NONCE_EXPIRY,	# Default expiry of nonce tokens
 			seen_nonce=req_validate_signature_nonce_seen	# nonce token checker
 		)
 
@@ -412,7 +412,7 @@ def req_validate_signature(db_conn, http_environ, data):
 	# Authorization-header -- this is to safeguard against
 	# accidentally turning off verification.
 
-	elif (AUTHENTICATOR_MOHAWK_ENABLED == 0):
+	elif (BA_AUTH_MOHAWK_ENABLED == 0):
 		assert (http_environ.has_key('HTTP_AUTHORIZATION') == False)
 
 		return None
