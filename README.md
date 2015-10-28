@@ -47,7 +47,7 @@ Content-type: application/json
 
 ```
 
-- /authenticate (POST): Try to authenticate user
+- /v1/authenticate (POST): Try to authenticate user
 
 ``` 
 
@@ -74,7 +74,7 @@ Content-type: application/json
 
 ```
 
-- /exists (GET) Check if username exists already
+- /v1/exists (GET) Check if username exists already
 
 ```
 
@@ -100,7 +100,7 @@ Content-type: application/json
 
 ```
 
-- /passwordchange (PUT): Change user's password 
+- /v1/passwordchange (PUT): Change user's password 
 
 ```
 
@@ -126,7 +126,7 @@ Content-type: application/json
 
 ```
 
-- /disable (PUT): Disable user
+- /v1/disable (PUT): Disable user
 
 ```
 
@@ -152,23 +152,59 @@ Content-type: application/json
 
 ```
 
-- /enable (PUT): Enable user (identical to /disable in usage)
+- /v1/enable (PUT): Enable user (identical to /disable in usage)
 
 ## Installation
+
+### Standalone server
+
+The most simple setup is the standalone server. 
+
+For instance:
 
 ```
 
 $ cd install_folder 
 
-$ unzip authenticator.zip
+$ unzip bergson_authenticator.zip
 
 $ virtualenv python-libs
 $ source python-libs/bin/activate
 $ pip install -r requirements.txt
 
-$ vim config/... # Edit config file
+$ cp config_example.py config.php
+$ vim config.py # Edit config file
 
-$ ./server --init
-$ ./server
+$ ./standalone_server --init
+$ ./standalone_server
 
 ```
+
+### WSGI (for production)
+
+WSGI is refered for production environment by most users.
+
+To setup in a Apache-WSGI environment, see [this post](http://thecodeship.com/deployment/deploy-django-apache-virtualenv-and-mod_wsgi/) for instance. Modification has to be done, though, and that centers on the index.wsgi file used. Below is an example file that can be used:
+
+```
+import os
+import sys
+import site
+
+# Add the site-packages of the chosen virtualenv to work with
+site.addsitedir('my-path-to-installation/python-libs/lib/python2.7/site-packages')
+
+# Add the app's directory to the PYTHONPATH
+sys.path.append('my-path-to-installation/code') # Here the code to the authenticator should live
+
+# Activate your virtual env
+activate_env="my-path-to-installation/python-libs/bin/activate_this.py"
+execfile(activate_env, dict(__file__=activate_env))
+
+import wsgi_init
+
+application = wsgi_init.ba_wsgi_init
+```
+
+Otherwise, the instructions referred to above should work.
+
