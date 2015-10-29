@@ -182,7 +182,7 @@ $ ./standalone_server
 
 ### WSGI (for production)
 
-WSGI is refered for production environment by most users.
+WSGI is prefered in production environments by most users for python-applications.
 
 To setup in a Apache-WSGI environment, see [this post](http://thecodeship.com/deployment/deploy-django-apache-virtualenv-and-mod_wsgi/) for instance. Modification has to be done, though, and that centers on the index.wsgi file used. Below is an example file that can be used:
 
@@ -207,4 +207,6 @@ application = wsgi_init.ba_wsgi_init
 ```
 
 Otherwise, the instructions referred to above should work.
+
+To install the database-tables, it is recommended to run the application in standalone-mode with the --init argument (see above).
 

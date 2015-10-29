@@ -209,31 +209,73 @@ def ba_db_create_tables():
 
 	db_conn = ba_db_connect()
 
+
+	#
+	# Check if users table exists, and if not, create.
+	#
+
 	db_cursor = db_conn.cursor()
+	db_cursor.execute("SHOW TABLE STATUS LIKE '%users%'")
+	db_table_status = db_cursor.fetchall()
 
-	# FIXME: Test if tables exist already.
+	table_create_users = 0
 
-	db_cursor.execute("CREATE TABLE `users` ( 				\
-				  `id` bigint(20) NOT NULL AUTO_INCREMENT, 	\
-				  `enabled` int(11) NOT NULL DEFAULT '0', 	\
-				  `username` varchar(128) NOT NULL, 		\
-				  `password_hashed` varchar(256) NOT NULL, 	\
-				  `salt` varchar(128) NOT NULL, 		\
-				  `created_at` bigint(20) NOT NULL, 		\
-				  `updated_at` bigint(20) DEFAULT NULL, 	\
-				  PRIMARY KEY (`id`), 				\
-				  UNIQUE KEY `username` (`username`) 		\
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8")
+	try:
+		if (db_table_status[0][0] == 'users'):
+			table_create_users = 0
 
-	db_cursor.execute("CREATE TABLE `nonce` (				\
-				`id` bigint(20) NOT NULL AUTO_INCREMENT,	\
-				`nonce_key_hash` varchar(64) NOT NULL,		\
-				`timestamp` bigint(20) NOT NULL, 		\
-				PRIMARY KEY (`id`)				\
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8			\
-			")
+	except IndexError:
+		table_create_users = 1
 
 	db_cursor.close()
+
+
+	if (table_create_users == 1):
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("CREATE TABLE `users` ( 				\
+					  `id` bigint(20) NOT NULL AUTO_INCREMENT, 	\
+					  `enabled` int(11) NOT NULL DEFAULT '0', 	\
+					  `username` varchar(128) NOT NULL, 		\
+					  `password_hashed` varchar(256) NOT NULL, 	\
+					  `salt` varchar(128) NOT NULL, 		\
+					  `created_at` bigint(20) NOT NULL, 		\
+					  `updated_at` bigint(20) DEFAULT NULL, 	\
+					  PRIMARY KEY (`id`), 				\
+					  UNIQUE KEY `username` (`username`) 		\
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8			\
+			")
+
+		db_cursor.close()
+
+	#
+	# Check if nonce table exists and create
+	# if not.
+
+	db_cursor = db_conn.cursor()
+	db_cursor.execute("SHOW TABLE STATUS LIKE '%nonce'")
+	db_table_status = db_cursor.fetchall()
+
+	table_create_nonce = 0
+
+	try:
+		if (db_table_status[0][0] == 'nonce'):
+			table_create_nonce = 0
+
+	except:
+		table_create_nonce = 1
+
+
+	if (table_create_nonce == 1):
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("CREATE TABLE `nonce` (				\
+					`id` bigint(20) NOT NULL AUTO_INCREMENT,	\
+					`nonce_key_hash` varchar(64) NOT NULL,		\
+					`timestamp` bigint(20) NOT NULL, 		\
+					PRIMARY KEY (`id`)				\
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8			\
+			")
+
+		db_cursor.close()
 
 	db_conn.commit()
 
