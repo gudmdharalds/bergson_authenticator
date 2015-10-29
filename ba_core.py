@@ -16,8 +16,6 @@ import wsgiref.simple_server as wsgi_simple_server
 # Import config-file
 from config import *
 
-# FIXME: Restructure the file
-
 if (BA_MOHAWK_ENABLED == 1):
 	import mohawk
 
@@ -105,16 +103,26 @@ class BAPathDispatcher:
 		else:
 			pass
 
-		handler = self.pathmap.get((method,path), ba_http_resp_404)
 
-		return handler(http_environ, start_response)
+		handler_info = self.pathmap.get((method, path), None)
 
-	def register(self, method, path, function):
+		if (handler_info == None):
+			handler_info = { 
+				'handler': ba_http_resp_404, 
+				'args_extra': None 
+			}
+
+		return handler_info['handler'](http_environ, start_response, handler_info['args_extra'])
+
+	def register(self, method, path, function, args_extra = None):
 		"""
 		Register handler function.
 		"""
 
-		self.pathmap[method.lower(), path] = function 
+		self.pathmap[method.lower(), path] = {
+			'handler' : function,
+			'args_extra' : args_extra
+		}
 
 		return function
 
@@ -174,16 +182,16 @@ def ba_db_create_tables():
 # Handle reporting to caller 
 #
 
-def ba_http_resp_404(http_environ, start_response):
+def ba_http_resp_404(http_environ, start_response, args_extra):
 	""" 
 	Handle when paths are not found by dispatcher. 
 	This function will return with HTTP 404 error,
 	and a JSON string with error message.
 	"""
 
-	return ba_http_resp_json(None, start_response, 404, {'error': 'Not found'})
+	return ba_http_resp_json(None, start_response, 404, None, {'error': 'Not found'})
 	
-def ba_http_resp_json(ba_sig_res, start_response, ba_http_resp_num, json_data):
+def ba_http_resp_json(ba_sig_res, start_response, http_resp_num, resp_headers_extra, json_data):
 	"""
 	Return a HTTP status, and a JSON response.
 	The JSON-data is specified by json_data,
@@ -193,10 +201,10 @@ def ba_http_resp_json(ba_sig_res, start_response, ba_http_resp_num, json_data):
 	resp_header_content_type = 'application/json'
 	resp_body = json.dumps(json_data)
 
-	if ((ba_http_resp_num >= 200) and (ba_http_resp_num <= 299)):
+	if ((http_resp_num >= 200) and (http_resp_num <= 299)):
 		resp_status_text = 'OK'
 
-	elif (ba_http_resp_num == 404):
+	elif (http_resp_num == 404):
 		resp_status_text = 'Not Found'
 
 	else:
@@ -207,6 +215,9 @@ def ba_http_resp_json(ba_sig_res, start_response, ba_http_resp_num, json_data):
 			('Cache-Control', 'no-cache'), 
 			('Pragma', 'no-cache') 
 	]
+
+	if (resp_headers_extra != None):
+		resp_headers += resp_headers_extra
 
 	#
 	# If we are provided with a Receiver (Hoawk) object,
@@ -222,7 +233,7 @@ def ba_http_resp_json(ba_sig_res, start_response, ba_http_resp_num, json_data):
 		)
 
 
-	start_response('200 ' + resp_status_text, resp_headers)
+	start_response(str(http_resp_num) + ' ' + resp_status_text, resp_headers)
 
 	return resp_body
 
@@ -454,7 +465,7 @@ def ba_req_input_password_verify(req_password_str, db_password_hashed, db_salt):
 # Deal with HTTP requests from callers.
 #
 
-def ba_handler_authenticate(http_environ, start_response):
+def ba_handler_authenticate(http_environ, start_response, args_extra):
 	"""
 	Try to authenticate user using JSON request-data.
 	"""
@@ -468,7 +479,7 @@ def ba_handler_authenticate(http_environ, start_response):
 
 	except KeyError:
 		# That failed, inform user that the resource does not exist.
-		return ba_http_resp_json(None, start_response, 400, { 'error' : 'Username and/or password missing' } )
+		return ba_http_resp_json(None, start_response, 400, None, { 'error' : 'Username and/or password missing' } )
 
 	#
 	# Connect to DB
@@ -478,7 +489,7 @@ def ba_handler_authenticate(http_environ, start_response):
 		db_conn = ba_db_connect()
 
 	except:
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })	
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })	
         
 	#
 	# Check if username is acceptable
@@ -486,7 +497,7 @@ def ba_handler_authenticate(http_environ, start_response):
 	#
 
 	if (ba_req_input_check_username(req_username) != True):
-		return ba_http_resp_json(None, start_response, 406, { 'error': 'Username is not acceptable' })
+		return ba_http_resp_json(None, start_response, 406, None, { 'error': 'Username is not acceptable' })
 
 	#
 	# Check if signature of request validates.
@@ -496,7 +507,7 @@ def ba_handler_authenticate(http_environ, start_response):
 		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
 
 	except:
-		return ba_http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
+		return ba_http_resp_json(None, start_response, 403, None, { 'error': 'Signature validation of your request failed.' })
 
 
 	# Got some input, try to find a match in the DB.
@@ -510,7 +521,7 @@ def ba_handler_authenticate(http_environ, start_response):
 
 	except:
 		# Inform about DB error
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
 	#
 	# Try to fetch something from DB,
@@ -525,7 +536,7 @@ def ba_handler_authenticate(http_environ, start_response):
 
 	except:
 		# Inform about DB error
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
 	#
 	# Now we should have gotten something,
@@ -546,12 +557,12 @@ def ba_handler_authenticate(http_environ, start_response):
 			# Matches hash, return 200 and JSON-string indicated 
 			# that the user is authenticated.
 
-			return ba_http_resp_json(ba_sig_res, start_response, 200, {'status': 1, 'authenticated': auth_ok })
+			return ba_http_resp_json(ba_sig_res, start_response, 200, None, {'status': 1, 'authenticated': auth_ok })
 	
-	return ba_http_resp_json(ba_sig_res, start_response, 403, { 'error': 'Access denied' })
+	return ba_http_resp_json(ba_sig_res, start_response, 403, None, { 'error': 'Access denied' })
 
 			
-def ba_handler_user_create(http_environ, start_response):
+def ba_handler_user_create(http_environ, start_response, args_extra):
 	"""
 	Create user, given username and password from JSON request.
 	Will do various checks of username and password, and hash 
@@ -567,7 +578,7 @@ def ba_handler_user_create(http_environ, start_response):
 
 	except KeyError:
 		# That failed, inform user that the resource does not exist.
-		return ba_http_resp_json(None, start_response, 400, { 'error': 'Username and/or password missing' })
+		return ba_http_resp_json(None, start_response, 400, None, { 'error': 'Username and/or password missing' })
 
 	# Got some input, connect to DB
 	try:
@@ -575,7 +586,7 @@ def ba_handler_user_create(http_environ, start_response):
 
 	except:
 		# Inform about DB error
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
 	#
 	# Check if signature of request validates.
@@ -585,7 +596,7 @@ def ba_handler_user_create(http_environ, start_response):
 		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
 
 	except:
-		return ba_http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
+		return ba_http_resp_json(None, start_response, 403, None, { 'error': 'Signature validation of your request failed.' })
 
 
 	#
@@ -594,7 +605,7 @@ def ba_handler_user_create(http_environ, start_response):
 	#
 
 	if (ba_req_input_check_username(req_username) != True):
-		return ba_http_resp_json(None, start_response, 406, { 'error': 'Username is not acceptable' })
+		return ba_http_resp_json(None, start_response, 406, None, { 'error': 'Username is not acceptable' })
 
 	#
 	# Check if password is acceptable
@@ -602,7 +613,7 @@ def ba_handler_user_create(http_environ, start_response):
 	#
 
 	if (ba_req_input_check_password(req_password) != True):
-		return ba_http_resp_json(None, start_response, 406, { 'error': 'Password is not acceptable' })
+		return ba_http_resp_json(None, start_response, 406, None, { 'error': 'Password is not acceptable' })
 
 
 	#
@@ -620,11 +631,11 @@ def ba_handler_user_create(http_environ, start_response):
 		db_cursor.close()
 
 	except:
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
 	# Check if user already exists
 	if (len(db_user_info) != 0):
-		return ba_http_resp_json(ba_sig_res, start_response, 422, { 'error': 'Username exists' })
+		return ba_http_resp_json(ba_sig_res, start_response, 422, None, { 'error': 'Username exists' })
 
 	# Now create random salt, and create
 	# hash of given password using that.
@@ -646,12 +657,12 @@ def ba_handler_user_create(http_environ, start_response):
 		db_conn.commit()
 
 	except:
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
-	return ba_http_resp_json(ba_sig_res, start_response, 200, { 'status': 1, 'username': req_username })
+	return ba_http_resp_json(ba_sig_res, start_response, 200, None, { 'status': 1, 'username': req_username })
 
 
-def ba_handler_user_exists(http_environ, start_response):
+def ba_handler_user_exists(http_environ, start_response, args_extra):
 	"""
 	Check if user exists, given username in JSON request.
 	"""
@@ -664,7 +675,7 @@ def ba_handler_user_exists(http_environ, start_response):
 
 	except KeyError:
 		# That failed, inform user that the resource does not exist.
-		return ba_http_resp_json(None, start_response, 400, { 'error': 'Username missing' })
+		return ba_http_resp_json(None, start_response, 400, None, { 'error': 'Username missing' })
 
 
 	# Got some input, connect to DB
@@ -673,7 +684,7 @@ def ba_handler_user_exists(http_environ, start_response):
 
 	except:
 		# Inform about DB error
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
 	#
 	# Check if signature of request validates.
@@ -683,7 +694,7 @@ def ba_handler_user_exists(http_environ, start_response):
 		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username)
 
 	except:
-		return ba_http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
+		return ba_http_resp_json(None, start_response, 403, None, { 'error': 'Signature validation of your request failed.' })
 
 
 	#
@@ -692,7 +703,7 @@ def ba_handler_user_exists(http_environ, start_response):
 	#
 
 	if (ba_req_input_check_username(req_username) != True):
-		return ba_http_resp_json(ba_sig_res, start_response, 406, { 'error': 'Username is not acceptable' })
+		return ba_http_resp_json(ba_sig_res, start_response, 406, None, { 'error': 'Username is not acceptable' })
 
 	#
 	# New see if user already exists 
@@ -709,17 +720,17 @@ def ba_handler_user_exists(http_environ, start_response):
 		db_cursor.close()
 	
 	except:
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
 	# Check if user already exists
 	if (len(db_user_info) == 1):
-		return ba_http_resp_json(ba_sig_res, start_response, 200, { 'status': 1, 'message': 'Username exists' })
+		return ba_http_resp_json(ba_sig_res, start_response, 200, None, { 'status': 1, 'message': 'Username exists' })
 	
 	else:
-		return ba_http_resp_json(ba_sig_res, start_response, 404, { 'error': 'Username does not exist' })
+		return ba_http_resp_json(ba_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
 
 
-def ba_handler_user_passwordchange(http_environ, start_response):
+def ba_handler_user_passwordchange(http_environ, start_response, args_extra):
 	"""
 	Change password for user, given JSON data.
 	"""
@@ -733,7 +744,7 @@ def ba_handler_user_passwordchange(http_environ, start_response):
 
 	except KeyError:
 		# That failed, inform user that the resource does not exist.
-		return ba_http_resp_json(None, start_response, 400, { 'error': 'Username and/or password missing' })
+		return ba_http_resp_json(None, start_response, 400, None, { 'error': 'Username and/or password missing' })
 
 
 	# Got some input, connect to DB
@@ -742,7 +753,7 @@ def ba_handler_user_passwordchange(http_environ, start_response):
 
 	except:
 		# Inform about DB error
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
 
 	#
@@ -753,7 +764,7 @@ def ba_handler_user_passwordchange(http_environ, start_response):
 		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
 
 	except:
-		return ba_http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
+		return ba_http_resp_json(None, start_response, 403, None, { 'error': 'Signature validation of your request failed.' })
 
 
 	#
@@ -762,7 +773,7 @@ def ba_handler_user_passwordchange(http_environ, start_response):
 	#
 
 	if (ba_req_input_check_username(req_username) != True):
-		return ba_http_resp_json(ba_sig_res, start_response, 406, { 'error': 'Username is not acceptable' })
+		return ba_http_resp_json(ba_sig_res, start_response, 406, None, { 'error': 'Username is not acceptable' })
 
         
 	#
@@ -771,7 +782,7 @@ def ba_handler_user_passwordchange(http_environ, start_response):
 	#
 
 	if (ba_req_input_check_password(req_password) != True):
-		return ba_http_resp_json(ba_sig_res, start_response, 406, { 'error': 'Password is not acceptable' })
+		return ba_http_resp_json(ba_sig_res, start_response, 406, None, { 'error': 'Password is not acceptable' })
 
 
 	#
@@ -788,11 +799,11 @@ def ba_handler_user_passwordchange(http_environ, start_response):
 		db_cursor.close()
 	
 	except:
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
 	# Check if user already exists
 	if (len(db_user_info) == 0):
-		return ba_http_resp_json(ba_sig_res, start_response, 404, { 'error': 'Username does not exist' })
+		return ba_http_resp_json(ba_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
 
 
 	#
@@ -811,20 +822,20 @@ def ba_handler_user_passwordchange(http_environ, start_response):
 		db_conn.commit()
 
 	except:
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'User-information could not be updated' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'User-information could not be updated' })
 
-	return ba_http_resp_json(ba_sig_res, start_response, 200, {'status': 1, 'message': 'Updated password' })
+	return ba_http_resp_json(ba_sig_res, start_response, 200, None, { 'status': 1, 'message': 'Updated password' })
 
 
-def ba_handler_user_enable(http_environ, start_response):
+def ba_handler_user_enable(http_environ, start_response, args_extra):
 	""" Enable user. Calls another function to perform the operation. """
-	return ba_handler_user_enable_or_disable(http_environ, start_response, 1)
+	return ba_handler_user_enable_or_disable(http_environ, start_response, 1, args_extra)
 
-def ba_handler_user_disable(http_environ, start_response):
+def ba_handler_user_disable(http_environ, start_response, args_extra):
 	""" Disable user. Calls another function to perform the operation. """
-	return ba_handler_user_enable_or_disable(http_environ, start_response, 0)
+	return ba_handler_user_enable_or_disable(http_environ, start_response, 0, args_extra)
 
-def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user):
+def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user, args_extra):
 	"""
 	Disable or enable specified user.
 	"""
@@ -837,7 +848,7 @@ def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user)
 
 	except KeyError:
 		# That failed, inform user that the resource does not exist.
-		return ba_http_resp_json(None, start_response, 400, { 'error': 'Username missing' })
+		return ba_http_resp_json(None, start_response, 400, None, { 'error': 'Username missing' })
 
 	# Got some input, connect to DB
 	try:
@@ -845,7 +856,7 @@ def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user)
 
 	except:
 		# Inform about DB error
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
 
 	#
@@ -854,7 +865,7 @@ def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user)
 	#
 
 	if (ba_req_input_check_username(req_username) != True):
-		return ba_http_resp_json(None, start_response, 406, { 'error': 'Username is not acceptable' })
+		return ba_http_resp_json(None, start_response, 406, None, { 'error': 'Username is not acceptable' })
 
  
 	#
@@ -865,7 +876,7 @@ def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user)
 		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username)
 
 	except:
-		return ba_http_resp_json(None, start_response, 403, { 'error': 'Signature validation of your request failed.' })
+		return ba_http_resp_json(None, start_response, 403, None, { 'error': 'Signature validation of your request failed.' })
 
       
 	#
@@ -881,10 +892,10 @@ def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user)
 		db_cursor.close()
 	
 	except:
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'Database communication error' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
 	if (len(db_user_info) != 1):
-		return ba_http_resp_json(ba_sig_res, start_response, 404, { 'error': 'Username does not exist' })
+		return ba_http_resp_json(ba_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
 
 	#
 	# Ok, user exists, then enable or disable user
@@ -900,25 +911,64 @@ def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user)
 		db_conn.commit()
 
 	except:
-		return ba_http_resp_json(None, start_response, 500, { 'error': 'User-information could not be updated' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'User-information could not be updated' })
 
-	return ba_http_resp_json(ba_sig_res, start_response, 200, {'status': 1, 'message': 'User ' + ('enabled' if enable_user == 1 else 'disabled') })
+	return ba_http_resp_json(ba_sig_res, start_response, 200, None, {'status': 1, 'message': 'User ' + ('enabled' if enable_user == 1 else 'disabled') })
 
-def ba_handler_health(http_environ, start_response):
-	return ba_http_resp_json(None, start_response, 200, {'status': 1 })
+def ba_handler_health(http_environ, start_response, args_extra):
+	"""
+	Handle requests for health-related information.
+	This function will try to connect to DB, and issue
+	a SQL query that should work, no matter how much
+	data has been collected. The point is to check 
+	connectivity.
+	"""
+
+	try:
+		db_conn = ba_db_connect()
+
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("SHOW CREATE TABLE users")
+		db_tableinfo = db_cursor.fetchall()
+
+		if (len(db_tableinfo) == 0):
+			assert False, "DB communication error"
+
+		db_conn.close()
+
+		return ba_http_resp_json(None, start_response, 200, None, { 'status': 1 })
+
+	except:
+		return ba_http_resp_json(None, start_response, 500, None, { 'status': 0 })
+
+
+def ba_handler_options(http_environ, start_response, url_methods_supported):
+	resp_headers_extra = [ ( 'Allow', url_methods_supported ) ]
+
+	return ba_http_resp_json(None, start_response, 200, resp_headers_extra, '')
 
 def ba_dispatcher_init():
 	dispatcher = BAPathDispatcher()
 	dispatcher.register('POST', '/v1/create', ba_handler_user_create)
+	dispatcher.register('OPTIONS', '/v1/create', ba_handler_options, 'POST,OPTIONS')
+
 	dispatcher.register('PUT', '/v1/passwordchange', ba_handler_user_passwordchange)
+	dispatcher.register('OPTIONS', '/v1/passwordchange', ba_handler_options, 'PUT,OPTIONS')
+
 	dispatcher.register('POST', '/v1/authenticate', ba_handler_authenticate)
+	dispatcher.register('OPTIONS', '/v1/authenticate', ba_handler_options, 'POST,OPTIONS')
+
 	dispatcher.register('GET', '/v1/exists', ba_handler_user_exists)
+	dispatcher.register('OPTIONS', '/v1/exists', ba_handler_options, 'GET,OPTIONS')
+
 	dispatcher.register('PUT', '/v1/disable', ba_handler_user_disable)
+	dispatcher.register('OPTIONS', '/v1/disable', ba_handler_options, 'PUT,OPTIONS')
+
 	dispatcher.register('PUT', '/v1/enable', ba_handler_user_enable)
+	dispatcher.register('OPTIONS', '/v1/enable', ba_handler_options, 'PUT,OPTIONS')
 
 	dispatcher.register('GET', '/v1/health', ba_handler_health)
-
-	# FIXME: Implement OPTIONS
+	dispatcher.register('OPTIONS', '/v1/health', ba_handler_options, 'GET,OPTIONS')
 
 	return dispatcher
 
