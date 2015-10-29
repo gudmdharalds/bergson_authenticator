@@ -16,7 +16,7 @@ Note: If Mohawk is disabled, but clients still issue Authorization-headers, the 
 
 ## API calls
 
-The webservice is RESTful, and allows the following calls to be made:
+The webservice is RESTful, supports HTTP OPTIONS for all paths, and allows the following calls to be made:
 
 - /v1/create (POST): Create a new user that will be enabled.
 

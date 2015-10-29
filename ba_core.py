@@ -116,7 +116,9 @@ class BAPathDispatcher:
 
 	def register(self, method, path, function, args_extra = None):
 		"""
-		Register handler function.
+		Register handler function. Save a reference to the function
+		when the specified path and method combination is called, and also
+		what extra arguments are to be sent to the function.
 		"""
 
 		self.pathmap[method.lower(), path] = {
@@ -125,6 +127,66 @@ class BAPathDispatcher:
 		}
 
 		return function
+
+
+#
+# Handle reporting to caller 
+#
+
+def ba_http_resp_404(http_environ, start_response, args_extra):
+	""" 
+	Handle when paths are not found by dispatcher. 
+	This function will return with HTTP 404 error,
+	and a JSON string with error message.
+	"""
+
+	return ba_http_resp_json(None, start_response, 404, None, {'error': 'Not found'})
+	
+def ba_http_resp_json(mohawk_sig_res, start_response, http_resp_num, resp_headers_extra, json_data):
+	"""
+	Return a HTTP status, and a JSON response.
+	The JSON-data is specified by json_data,
+	in any way desireable.
+	"""
+
+	resp_header_content_type = 'application/json'
+	resp_body = json.dumps(json_data)
+
+	if ((http_resp_num >= 200) and (http_resp_num <= 299)):
+		resp_status_text = 'OK'
+
+	elif (http_resp_num == 404):
+		resp_status_text = 'Not Found'
+
+	else:
+		resp_status_text = 'Error'
+	
+	resp_headers = [ 
+			('Content-type', resp_header_content_type), 
+			('Cache-Control', 'no-cache'), 
+			('Pragma', 'no-cache') 
+	]
+
+	if (resp_headers_extra != None):
+		resp_headers += resp_headers_extra
+
+	#
+	# If we are provided with a Receiver (Hoawk) object,
+	# attempt to digitally sign our response.
+	#
+
+	if (mohawk_sig_res is not None):
+		mohawk_sig_res.respond(content=resp_body,
+				content_type=resp_header_content_type)
+
+		resp_headers.append( 
+			( 'Server-Authorization', mohawk_sig_res.response_header.encode("ascii") ) 
+		)
+
+
+	start_response(str(http_resp_num) + ' ' + resp_status_text, resp_headers)
+
+	return resp_body
 
 #
 # Database stuff
@@ -177,65 +239,6 @@ def ba_db_create_tables():
 
 	db_conn.close()
 
-
-#
-# Handle reporting to caller 
-#
-
-def ba_http_resp_404(http_environ, start_response, args_extra):
-	""" 
-	Handle when paths are not found by dispatcher. 
-	This function will return with HTTP 404 error,
-	and a JSON string with error message.
-	"""
-
-	return ba_http_resp_json(None, start_response, 404, None, {'error': 'Not found'})
-	
-def ba_http_resp_json(ba_sig_res, start_response, http_resp_num, resp_headers_extra, json_data):
-	"""
-	Return a HTTP status, and a JSON response.
-	The JSON-data is specified by json_data,
-	in any way desireable.
-	"""
-
-	resp_header_content_type = 'application/json'
-	resp_body = json.dumps(json_data)
-
-	if ((http_resp_num >= 200) and (http_resp_num <= 299)):
-		resp_status_text = 'OK'
-
-	elif (http_resp_num == 404):
-		resp_status_text = 'Not Found'
-
-	else:
-		resp_status_text = 'Error'
-	
-	resp_headers = [ 
-			('Content-type', resp_header_content_type), 
-			('Cache-Control', 'no-cache'), 
-			('Pragma', 'no-cache') 
-	]
-
-	if (resp_headers_extra != None):
-		resp_headers += resp_headers_extra
-
-	#
-	# If we are provided with a Receiver (Hoawk) object,
-	# attempt to digitally sign our response.
-	#
-
-	if (ba_sig_res is not None):
-		ba_sig_res.respond(content=resp_body,
-				content_type=resp_header_content_type)
-
-		resp_headers.append( 
-			( 'Server-Authorization', ba_sig_res.response_header.encode("ascii") ) 
-		)
-
-
-	start_response(str(http_resp_num) + ' ' + resp_status_text, resp_headers)
-
-	return resp_body
 
 #
 # Input check routines
@@ -405,7 +408,7 @@ def ba_signature(db_conn, http_environ, data):
 		# problem with it.
 		#
 
-		ba_sig_res = mohawk.Receiver(
+		mohawk_sig_res = mohawk.Receiver(
 			ba_signature_lookup_sender, 		# Provide callback function to look up caller ID 
 			http_environ['HTTP_AUTHORIZATION'], 		# HTTP authorization header (only contents of it)
 			'http://' + http_environ['HTTP_HOST'] + http_environ['PATH_INFO'], # Construct the URL called
@@ -425,7 +428,7 @@ def ba_signature(db_conn, http_environ, data):
 
 		return None
 
-	return ba_sig_res
+	return mohawk_sig_res
 		
 #
 # Functions to handle password-hashing
@@ -504,7 +507,7 @@ def ba_handler_authenticate(http_environ, start_response, args_extra):
 	#
 
 	try:
-		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
+		mohawk_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
 
 	except:
 		return ba_http_resp_json(None, start_response, 403, None, { 'error': 'Signature validation of your request failed.' })
@@ -557,9 +560,9 @@ def ba_handler_authenticate(http_environ, start_response, args_extra):
 			# Matches hash, return 200 and JSON-string indicated 
 			# that the user is authenticated.
 
-			return ba_http_resp_json(ba_sig_res, start_response, 200, None, {'status': 1, 'authenticated': auth_ok })
+			return ba_http_resp_json(mohawk_sig_res, start_response, 200, None, {'status': 1, 'authenticated': auth_ok })
 	
-	return ba_http_resp_json(ba_sig_res, start_response, 403, None, { 'error': 'Access denied' })
+	return ba_http_resp_json(mohawk_sig_res, start_response, 403, None, { 'error': 'Access denied' })
 
 			
 def ba_handler_user_create(http_environ, start_response, args_extra):
@@ -593,7 +596,7 @@ def ba_handler_user_create(http_environ, start_response, args_extra):
 	#
 
 	try:
-		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
+		mohawk_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
 
 	except:
 		return ba_http_resp_json(None, start_response, 403, None, { 'error': 'Signature validation of your request failed.' })
@@ -635,7 +638,7 @@ def ba_handler_user_create(http_environ, start_response, args_extra):
 
 	# Check if user already exists
 	if (len(db_user_info) != 0):
-		return ba_http_resp_json(ba_sig_res, start_response, 422, None, { 'error': 'Username exists' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 422, None, { 'error': 'Username exists' })
 
 	# Now create random salt, and create
 	# hash of given password using that.
@@ -659,7 +662,7 @@ def ba_handler_user_create(http_environ, start_response, args_extra):
 	except:
 		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
-	return ba_http_resp_json(ba_sig_res, start_response, 200, None, { 'status': 1, 'username': req_username })
+	return ba_http_resp_json(mohawk_sig_res, start_response, 200, None, { 'status': 1, 'username': req_username })
 
 
 def ba_handler_user_exists(http_environ, start_response, args_extra):
@@ -691,7 +694,7 @@ def ba_handler_user_exists(http_environ, start_response, args_extra):
 	#
 
 	try:
-		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username)
+		mohawk_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username)
 
 	except:
 		return ba_http_resp_json(None, start_response, 403, None, { 'error': 'Signature validation of your request failed.' })
@@ -703,7 +706,7 @@ def ba_handler_user_exists(http_environ, start_response, args_extra):
 	#
 
 	if (ba_req_input_check_username(req_username) != True):
-		return ba_http_resp_json(ba_sig_res, start_response, 406, None, { 'error': 'Username is not acceptable' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 406, None, { 'error': 'Username is not acceptable' })
 
 	#
 	# New see if user already exists 
@@ -724,10 +727,10 @@ def ba_handler_user_exists(http_environ, start_response, args_extra):
 
 	# Check if user already exists
 	if (len(db_user_info) == 1):
-		return ba_http_resp_json(ba_sig_res, start_response, 200, None, { 'status': 1, 'message': 'Username exists' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 200, None, { 'status': 1, 'message': 'Username exists' })
 	
 	else:
-		return ba_http_resp_json(ba_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
 
 
 def ba_handler_user_passwordchange(http_environ, start_response, args_extra):
@@ -761,7 +764,7 @@ def ba_handler_user_passwordchange(http_environ, start_response, args_extra):
 	#
 
 	try:
-		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
+		mohawk_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
 
 	except:
 		return ba_http_resp_json(None, start_response, 403, None, { 'error': 'Signature validation of your request failed.' })
@@ -773,7 +776,7 @@ def ba_handler_user_passwordchange(http_environ, start_response, args_extra):
 	#
 
 	if (ba_req_input_check_username(req_username) != True):
-		return ba_http_resp_json(ba_sig_res, start_response, 406, None, { 'error': 'Username is not acceptable' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 406, None, { 'error': 'Username is not acceptable' })
 
         
 	#
@@ -782,7 +785,7 @@ def ba_handler_user_passwordchange(http_environ, start_response, args_extra):
 	#
 
 	if (ba_req_input_check_password(req_password) != True):
-		return ba_http_resp_json(ba_sig_res, start_response, 406, None, { 'error': 'Password is not acceptable' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 406, None, { 'error': 'Password is not acceptable' })
 
 
 	#
@@ -803,7 +806,7 @@ def ba_handler_user_passwordchange(http_environ, start_response, args_extra):
 
 	# Check if user already exists
 	if (len(db_user_info) == 0):
-		return ba_http_resp_json(ba_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
 
 
 	#
@@ -824,7 +827,7 @@ def ba_handler_user_passwordchange(http_environ, start_response, args_extra):
 	except:
 		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'User-information could not be updated' })
 
-	return ba_http_resp_json(ba_sig_res, start_response, 200, None, { 'status': 1, 'message': 'Updated password' })
+	return ba_http_resp_json(mohawk_sig_res, start_response, 200, None, { 'status': 1, 'message': 'Updated password' })
 
 
 def ba_handler_user_enable(http_environ, start_response, args_extra):
@@ -873,7 +876,7 @@ def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user,
 	#
 
 	try:
-		ba_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username)
+		mohawk_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username)
 
 	except:
 		return ba_http_resp_json(None, start_response, 403, None, { 'error': 'Signature validation of your request failed.' })
@@ -895,7 +898,7 @@ def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user,
 		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
 	if (len(db_user_info) != 1):
-		return ba_http_resp_json(ba_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
 
 	#
 	# Ok, user exists, then enable or disable user
@@ -913,7 +916,7 @@ def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user,
 	except:
 		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'User-information could not be updated' })
 
-	return ba_http_resp_json(ba_sig_res, start_response, 200, None, {'status': 1, 'message': 'User ' + ('enabled' if enable_user == 1 else 'disabled') })
+	return ba_http_resp_json(mohawk_sig_res, start_response, 200, None, {'status': 1, 'message': 'User ' + ('enabled' if enable_user == 1 else 'disabled') })
 
 def ba_handler_health(http_environ, start_response, args_extra):
 	"""
