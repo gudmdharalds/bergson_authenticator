@@ -1,11 +1,27 @@
 #!/usr/bin/env python
 
-from ba_core import * 
-
 if __name__ == '__main__':
 	#
 	# Here begins main().
 	#
+
+        
+	#
+	# Scrub environment -- get rid of everything.
+	#
+       
+	import os
+ 
+	os_environ_keys = os.environ.keys()
+
+	for os_environ_keys_item in os_environ_keys:
+		os.environ.pop(os_environ_keys_item, None)
+
+	#
+	# Now import the core BA functions 
+	# 
+	
+	from ba_core import * 
 
 	#
 	# Register handlers which deal with requests.
@@ -23,10 +39,7 @@ if __name__ == '__main__':
 		print('Ready for use. Now launch without --init')
 		sys.exit(0)
 
-	print('Starting standalone server...')
-
-	# FIXME: Missing signal handling
-	# FIXME: KeyboardInterrupt handling
+	print('Starting standalone server... - press CTRL + C to exit')
 
 	dispatcher = ba_dispatcher_init()
 
