@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import unittest
 
 import ba_core
 import pprint
 import tempfile
+import time
 import os
 
 def dummy_call_func1():
@@ -422,6 +424,8 @@ class TestPathDispatcher(unittest.TestCase):
 
 
 class TestHttpRespMethods(unittest.TestCase):
+	# FIXME: No mohawk tests
+
 	def test_ba_http_resp_404(self):
 		http_server_emulator_instance = http_server_emulator()
 		http_resp_body = ba_core.ba_http_resp_404(None, http_server_emulator_instance, None)
@@ -560,7 +564,106 @@ class TestHttpRespMethods(unittest.TestCase):
 
 		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
 
+class TestDBRoutines(unittest.TestCase):
+	# FIXME: Implement 
+	def test_db_connect(self):
+		# Make sure we will be connecting to a test-database
+		self.assertEqual(ba_core.BA_DB_NAME.rfind('_test'), len(ba_core.BA_DB_NAME) - len('_test'))
+		self.assertEqual(ba_core.BA_DB_NAME.split('_test'), [ ba_core.BA_DB_NAME_ORIGINAL, '' ])
+
+		db_conn = ba_core.ba_db_connect()
+
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("SHOW STATUS LIKE  'Bytes_sent' ")
+		db_show_status_info = db_cursor.fetchall()
+
+		self.assertTrue(db_show_status_info[0][1] > 0)
+
+		db_conn.close()
+
+		return True
+
+ 	def test_db_table_create(self):
+		db_conn = ba_core.ba_db_connect()
+
+		ba_core.ba_db_create_tables()
+
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DESC users")
+
+		db_table_info_users = db_cursor.fetchall()
+
+		self.assertEqual(db_table_info_users[0], ('id', 'bigint(20)', 'NO', 'PRI', None, 'auto_increment'))
+		self.assertEqual(db_table_info_users[1], ('enabled', 'int(11)', 'NO', '', '0', ''))
+		self.assertEqual(db_table_info_users[2], ('username', 'varchar(128)', 'NO', 'UNI', None, ''))
+		self.assertEqual(db_table_info_users[3], ('password_hashed', 'varchar(256)', 'NO', '', None, ''))
+		self.assertEqual(db_table_info_users[4], ('salt', 'varchar(128)', 'NO', '', None, ''))
+		self.assertEqual(db_table_info_users[5], ('created_at', 'bigint(20)', 'NO', '', None, ''))
+		self.assertEqual(db_table_info_users[6], ('updated_at', 'bigint(20)', 'YES', '', None, ''))
+
+
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DESC nonce")
+
+		db_table_info_nonce = db_cursor.fetchall()
+
+		self.assertEqual(db_table_info_nonce[0], ('id', 'bigint(20)', 'NO', 'PRI', None, 'auto_increment'))
+		self.assertEqual(db_table_info_nonce[1], ('nonce_key_hash', 'varchar(64)', 'NO', '', None, ''))
+		self.assertEqual(db_table_info_nonce[2], ('timestamp', 'bigint(20)', 'NO', '', None, ''))
+
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE users")
+
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE nonce")
+	
+		return True
+
+class TestReqInput(unittest.TestCase):
+	def test_username(self):
+		# These should return 'True'
+		self.assertTrue(ba_core.ba_req_input_check_username('johndoe'))
+		self.assertTrue(ba_core.ba_req_input_check_username('john'))
+		self.assertTrue(ba_core.ba_req_input_check_username('john5000'))
+		self.assertTrue(ba_core.ba_req_input_check_username('john9810'))
+		self.assertTrue(ba_core.ba_req_input_check_username('john9810'))
+
+		# These should return 'False'
+		self.assertFalse(ba_core.ba_req_input_check_username('joe'))
+		self.assertFalse(ba_core.ba_req_input_check_username('1joe'))
+		self.assertFalse(ba_core.ba_req_input_check_username('1joe50'))
+ 		self.assertFalse(ba_core.ba_req_input_check_username('johnZ'))
+ 		self.assertFalse(ba_core.ba_req_input_check_username('johnZAL'))
+ 		self.assertFalse(ba_core.ba_req_input_check_username(u"johnð"))
+ 		self.assertFalse(ba_core.ba_req_input_check_username(u"johnæ"))
+ 		self.assertFalse(ba_core.ba_req_input_check_username(u"johnú1500"))
+		self.assertFalse(ba_core.ba_req_input_check_username('27926ba0d1451c9d0f775a' +
+			'a28d6de86a0f32852527926ba0d1451c9d0f775aa28d6de86a0f32852527926ba0d' +
+			'1451c9d0f775aa28d6de86a0f3285256de86a0f328'))
+
+	def test_password(self):
+		self.assertTrue(ba_core.ba_req_input_check_password('YaQ903ENr'))
+		self.assertTrue(ba_core.ba_req_input_check_password('YaQ903ENr93838a'))
+		self.assertTrue(ba_core.ba_req_input_check_password('YaQ903ENr|'))
+		self.assertTrue(ba_core.ba_req_input_check_password('YaQ--903E#Nr!938(3)8a'))
+	
+	
+		# These should return 'False'
+		self.assertFalse(ba_core.ba_req_input_check_password('123'))
+		self.assertFalse(ba_core.ba_req_input_check_password('123æ'))
+		self.assertFalse(ba_core.ba_req_input_check_password(u'ðæ123a'))
+		self.assertFalse(ba_core.ba_req_input_check_password('abc123\n'))
+		self.assertFalse(ba_core.ba_req_input_check_username(u"johnú1500\n"))
+		self.assertFalse(ba_core.ba_req_input_check_password('a694ea4fb0ac52201bba8f3' +
+			'f63e20b2f20880f534eac614890f341f01009deb9b7a1475640f1522baf19be568cc' +
+			'f45b16fcdface4b7633497343cb'))
+
+
 
 if __name__ == '__main__':
-		unittest.main()
+	# Make sure we emply the test database here
+	ba_core.BA_DB_NAME_ORIGINAL = ba_core.BA_DB_NAME
+	ba_core.BA_DB_NAME = ba_core.BA_DB_NAME + "_test"
+
+	unittest.main()
 
