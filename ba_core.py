@@ -198,7 +198,7 @@ def ba_db_connect():
 	"""
 
 	db_conn = MySQLdb.connect(BA_DB_SERVER, BA_DB_USERNAME, 
-		BA_DB_PASSWORD, BA_DB_USERNAME)
+		BA_DB_PASSWORD, BA_DB_NAME)
 
 	return db_conn
 
@@ -208,7 +208,6 @@ def ba_db_create_tables():
 	"""
 
 	db_conn = ba_db_connect()
-
 
 	#
 	# Check if users table exists, and if not, create.
