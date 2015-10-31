@@ -29,17 +29,23 @@ class http_server_emulator():
 
 
 class TestPathDispatcher(unittest.TestCase):
-	test_call_1_res = {
-		'__test_call_1_handler_second_called' : False
+	test_call_json_res = {
+		'__test_call_json_handler_second_called' : False
 	}
 	
-	test_call_2_res = {
-		'__test_call_2_handler_second_called' : False
+	test_call_text_plain_res = {
+		'__test_call_text_plain_handler_second_called' : False
 	}
 
-	test_call_3_res = {
-		'__test_call_3_handler_second_called' : False
+	test_call_form_urlencoded_res = {
+		'__test_call_form_urlencoded_handler_second_called' : False
 	}
+
+	test_call_404_res = {
+		'__test_call_404_handler_second_called' : False
+	}
+
+
 
 	def test_register(self):
 		path_dispatcher = ba_core.BAPathDispatcher()
@@ -60,7 +66,7 @@ class TestPathDispatcher(unittest.TestCase):
 		)
 
 
-	def test_call_1(self):
+	def test_call_json(self):
 
 		#
 		# Emulate HTTP request structures
@@ -103,9 +109,9 @@ class TestPathDispatcher(unittest.TestCase):
 		}
 
 		path_dispatcher = ba_core.BAPathDispatcher()
-		path_dispatcher.register('POST', '/v1/create', self.__test_call_1_handler_main, None)
-		path_dispatcher.register('POST', '/v1/create_not_called', self.__test_call_1_handler_second, None)
-		path_dispatcher.__call__(http_headers, self.__test_call_1_handler_main)
+		path_dispatcher.register('POST', '/v1/create', self.__test_call_json_handler_main, None)
+		path_dispatcher.register('POST', '/v1/create_not_called', self.__test_call_json_handler_second, None)
+		path_dispatcher.__call__(http_headers, self.__test_call_json_handler_main)
 
 		#
 		# Close temporary file and remove it.
@@ -114,35 +120,35 @@ class TestPathDispatcher(unittest.TestCase):
 		f_http_input_file.close()	
 		os.remove(http_input_file_path[1])
 
-		self.assertEqual(self.test_call_1_res, 
+		self.assertEqual(self.test_call_json_res, 
 			{ 
 				'http_environ' : http_headers,
 				'args_extra' : None,
-				'__test_call_1_handler_second_called' : False
+				'__test_call_json_handler_second_called' : False
 			}
 		)
 
-		self.assertEqual(self.test_call_1_res['http_environ']['params'], { "username": "myuser", "password": "mypass" })	
+		self.assertEqual(self.test_call_json_res['http_environ']['params'], { "username": "myuser", "password": "mypass" })	
 
-		self.assertEqual(self.test_call_1_res['http_environ']['CONTENT_TYPE'], 'application/json')
+		self.assertEqual(self.test_call_json_res['http_environ']['CONTENT_TYPE'], 'application/json')
 	
 		return False
 
-	def __test_call_1_handler_main(self, http_environ, start_response, args_extra):
-		self.test_call_1_res['http_environ'] = http_environ
-		self.test_call_1_res['args_extra'] = args_extra
+	def __test_call_json_handler_main(self, http_environ, start_response, args_extra):
+		self.test_call_json_res['http_environ'] = http_environ
+		self.test_call_json_res['args_extra'] = args_extra
 
 		return True
 
-	def __test_call_1_handler_second(self, http_environ, start_response, args_extra):
-		self.test_call_1_res = { 
-			'__test_call_1_handler_second_called': True 
+	def __test_call_json_handler_second(self, http_environ, start_response, args_extra):
+		self.test_call_json_res = { 
+			'__test_call_json_handler_second_called': True 
 		}
 
 		return True
 
-
-	def test_call_2(self):
+	
+	def test_call_text_plain(self):
 		"""
 		Test request with text/plain content type
 		"""
@@ -188,9 +194,9 @@ class TestPathDispatcher(unittest.TestCase):
 		}
 
 		path_dispatcher = ba_core.BAPathDispatcher()
-		path_dispatcher.register('GET', '/v1/create', self.__test_call_2_handler_main, None)
-		path_dispatcher.register('GET', '/v1/create_not_called', self.__test_call_2_handler_second, None)
-		path_dispatcher.__call__(http_headers, self.__test_call_2_handler_main)
+		path_dispatcher.register('GET', '/v1/create', self.__test_call_text_plain_handler_main, None)
+		path_dispatcher.register('GET', '/v1/create_not_called', self.__test_call_text_plain_handler_second, None)
+		path_dispatcher.__call__(http_headers, self.__test_call_text_plain_handler_main)
 
 		#
 		# Close temporary file and remove it.
@@ -199,40 +205,134 @@ class TestPathDispatcher(unittest.TestCase):
 		f_http_input_file.close()	
 		os.remove(http_input_file_path[1])
 
-		self.assertEqual(self.test_call_2_res, 
+		self.assertEqual(self.test_call_text_plain_res, 
 			{ 
 				'http_environ' : http_headers,
 				'args_extra' : None,
-				'__test_call_2_handler_second_called' : False
+				'__test_call_text_plain_handler_second_called' : False
 			}
 		)
 
-		self.assertEqual(self.test_call_2_res['http_environ']['params'], 
+		self.assertEqual(self.test_call_text_plain_res['http_environ']['params'], 
 			{ 
 				"username": "myotheruser", 
 				"password": "myotherpass" 
 			}
 		)
 
-		self.assertEqual(self.test_call_2_res['http_environ']['CONTENT_TYPE'], 'text/plain')
+		self.assertEqual(self.test_call_text_plain_res['http_environ']['CONTENT_TYPE'], 'text/plain')
 	
 		return False
 
-	def __test_call_2_handler_main(self, http_environ, start_response, args_extra):
-		self.test_call_2_res['http_environ'] = http_environ
-		self.test_call_2_res['args_extra'] = args_extra
+	def __test_call_text_plain_handler_main(self, http_environ, start_response, args_extra):
+		self.test_call_text_plain_res['http_environ'] = http_environ
+		self.test_call_text_plain_res['args_extra'] = args_extra
 
 		return True
 
-	def __test_call_2_handler_second(self, http_environ, start_response, args_extra):
-		self.test_call_2_res = { 
-			'__test_call_2_handler_second_called': True 
+	def __test_call_text_plain_handler_second(self, http_environ, start_response, args_extra):
+		self.test_call_text_plain_res = { 
+			'__test_call_text_plain_handler_second_called': True 
 		}
 
 		return True
 
 
-	def test_call_3(self):
+
+	def test_call_form_urlencoded(self):
+		"""
+		Test request with text/plain content type
+		"""
+
+		#
+		# Emulate HTTP request structures
+		#
+
+		http_input_file_path = tempfile.mkstemp()
+		f_http_input_file = open(http_input_file_path[1], 'w')
+		f_http_input_file.write('username=myyetotheruser&password=myyetotherpass')
+		f_http_input_file.close()
+
+		f_http_input_file = open(http_input_file_path[1], 'r')
+		
+		f_dev_null = open('/dev/null', 'w')
+
+		http_headers = {
+			'CONTENT_LENGTH': '47',
+			'CONTENT_TYPE': 'application/x-www-form-urlencoded',
+			'GATEWAY_INTERFACE': 'CGI/1.1',
+			'HTTP_ACCEPT': '*/*',
+			'HTTP_HOST': '127.0.0.1:8080',
+			'HTTP_USER_AGENT': 'curl/7.29.0',
+			'PATH_INFO': '/v1/create',
+			'QUERY_STRING': '',
+			'REMOTE_ADDR': '127.0.0.1',
+			'REMOTE_HOST': 'localhost.localdomain',
+			'REQUEST_METHOD': 'POST',
+			'SCRIPT_NAME': '',
+			'SERVER_NAME': 'localhost.localdomain',
+			'SERVER_PORT': '8080',
+			'SERVER_PROTOCOL': 'HTTP/1.1',
+			'SERVER_SOFTWARE': 'WSGIServer/0.1 Python/2.7.5',
+			'params': {},
+			'wsgi.errors': f_dev_null,
+			'wsgi.input': f_http_input_file,
+			'wsgi.multiprocess': False,
+			'wsgi.multithread': True,
+			'wsgi.run_once': False,
+			'wsgi.url_scheme': 'http',
+			'wsgi.version': (1, 0)
+		}
+
+		http_server_emulator_instance = http_server_emulator()
+
+		path_dispatcher = ba_core.BAPathDispatcher()
+		path_dispatcher.register('POST', '/v1/create', self.__test_call_form_urlencoded_handler_main, None)
+		path_dispatcher.register('POST', '/v1/create_not_called', self.__test_call_form_urlencoded_handler_second, None)
+		path_dispatcher.__call__(http_headers, http_server_emulator_instance)
+
+		#
+		# Close temporary file and remove it.
+		#
+	
+		f_http_input_file.close()	
+		os.remove(http_input_file_path[1])
+
+		self.assertEqual(self.test_call_form_urlencoded_res, 
+			{ 
+				'http_environ' : http_headers,
+				'args_extra' : None,
+				'__test_call_form_urlencoded_handler_second_called' : False
+			}
+		)
+
+		self.assertEqual(self.test_call_form_urlencoded_res['http_environ']['params'], 
+			{ 
+				"username": "myyetotheruser", 
+				"password": "myyetotherpass" 
+			}
+		)
+
+		self.assertEqual(self.test_call_form_urlencoded_res['http_environ']['CONTENT_TYPE'], 'application/x-www-form-urlencoded')
+	
+		return False
+
+	def __test_call_form_urlencoded_handler_main(self, http_environ, start_response, args_extra):
+		self.test_call_form_urlencoded_res['http_environ'] = http_environ
+		self.test_call_form_urlencoded_res['args_extra'] = args_extra
+
+		return True
+
+	def __test_call_form_urlencoded_handler_second(self, http_environ, start_response, args_extra):
+		self.test_call_form_urlencoded_res = { 
+			'__test_call_form_urlencoded_handler_second_called': True 
+		}
+
+		return True
+
+
+
+	def test_call_404(self):
 		"""
 		Test request with non-existing path (i.e. 404 handler).
 		"""
@@ -280,8 +380,8 @@ class TestPathDispatcher(unittest.TestCase):
 		http_server_emulator_instance = http_server_emulator()
 
 		path_dispatcher = ba_core.BAPathDispatcher()
-		path_dispatcher.register('GET', '/v1/create', self.__test_call_3_handler_main, None)
-		path_dispatcher.register('GET', '/v1/create_not_called', self.__test_call_3_handler_second, None)
+		path_dispatcher.register('GET', '/v1/create', self.__test_call_404_handler_main, None)
+		path_dispatcher.register('GET', '/v1/create_not_called', self.__test_call_404_handler_second, None)
 		path_dispatcher.__call__(http_headers, http_server_emulator_instance)
 
 
@@ -292,9 +392,9 @@ class TestPathDispatcher(unittest.TestCase):
 		f_http_input_file.close()	
 		os.remove(http_input_file_path[1])
 
-		self.assertEqual(self.test_call_3_res, 
+		self.assertEqual(self.test_call_404_res, 
 			{ 
-				'__test_call_3_handler_second_called' : False
+				'__test_call_404_handler_second_called' : False
 			}
 		)
 
@@ -307,15 +407,15 @@ class TestPathDispatcher(unittest.TestCase):
 
 		return False
 
-	def __test_call_3_handler_main(self, http_environ, start_response, args_extra):
-		self.test_call_3_res['http_environ'] = http_environ
-		self.test_call_3_res['args_extra'] = args_extra
+	def __test_call_404_handler_main(self, http_environ, start_response, args_extra):
+		self.test_call_404_res['http_environ'] = http_environ
+		self.test_call_404_res['args_extra'] = args_extra
 
 		return True
 
-	def __test_call_3_handler_second(self, http_environ, start_response, args_extra):
-		self.test_call_3_res = { 
-			'__test_call_3_handler_second_called': True 
+	def __test_call_404_handler_second(self, http_environ, start_response, args_extra):
+		self.test_call_40_res = { 
+			'__test_call_404_handler_second_called': True 
 		}
 
 		return True
@@ -328,11 +428,137 @@ class TestHttpRespMethods(unittest.TestCase):
 
 		self.assertEqual(http_resp_body, '{"error": "Not found"}')
 		self.assertEqual(http_server_emulator_instance.getinfo(),	('404 Not Found', 
-			[ ('Content-type', 'application/json'), 
+			[ 
+				('Content-type', 'application/json'), 
 				('Cache-Control', 'no-cache'), 
 				('Pragma', 'no-cache')
 			]
 		))
+
+	def test_ba_http_resp_json_200a(self):
+		http_server_emulator_instance = http_server_emulator()
+
+		http_resp_body = ba_core.ba_http_resp_json(None, http_server_emulator_instance, 200, None, 
+			{ 
+				"somefield1":"somedata1", "somefield2":"somedata2" 
+			}
+		)
+
+		self.assertEqual(http_server_emulator_instance.resp_code, "200 OK")
+		self.assertEqual(http_server_emulator_instance.headers, 
+			[
+				('Content-type', 'application/json'),
+				('Cache-Control', 'no-cache'),
+				('Pragma', 'no-cache')
+			]
+		)
+
+		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
+
+	def test_ba_http_resp_json200b(self):
+		http_server_emulator_instance = http_server_emulator()
+
+		http_resp_body = ba_core.ba_http_resp_json(None, http_server_emulator_instance, 200, [ ('Header1Field', 'Header1Value') ], 
+			{ 
+				"somefield1":"somedata1", "somefield2":"somedata2" 
+			}
+		)
+
+		self.assertEqual(http_server_emulator_instance.resp_code, "200 OK")
+		self.assertEqual(http_server_emulator_instance.headers, 
+			[
+				('Content-type', 'application/json'),
+				('Cache-Control', 'no-cache'),
+				('Pragma', 'no-cache'),
+				('Header1Field', 'Header1Value'),
+			]
+		)
+
+		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
+
+
+	def test_ba_http_resp_json_404a(self):
+		http_server_emulator_instance = http_server_emulator()
+
+		http_resp_body = ba_core.ba_http_resp_json(None, http_server_emulator_instance, 404, None, 
+			{ 
+				"somefield1":"somedata1", "somefield2":"somedata2" 
+			}
+		)
+
+		self.assertEqual(http_server_emulator_instance.resp_code, "404 Not Found")
+		self.assertEqual(http_server_emulator_instance.headers, 
+			[
+				('Content-type', 'application/json'),
+				('Cache-Control', 'no-cache'),
+				('Pragma', 'no-cache')
+			]
+		)
+
+		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
+
+	def test_ba_http_resp_json404b(self):
+		http_server_emulator_instance = http_server_emulator()
+
+		http_resp_body = ba_core.ba_http_resp_json(None, http_server_emulator_instance, 404, [ ('Header1Field', 'Header1Value') ], 
+			{ 
+				"somefield1":"somedata1", "somefield2":"somedata2" 
+			}
+		)
+
+		self.assertEqual(http_server_emulator_instance.resp_code, "404 Not Found")
+		self.assertEqual(http_server_emulator_instance.headers, 
+			[
+				('Content-type', 'application/json'),
+				('Cache-Control', 'no-cache'),
+				('Pragma', 'no-cache'),
+				('Header1Field', 'Header1Value'),
+			]
+		)
+
+		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
+
+
+	def test_ba_http_resp_json_500a(self):
+		http_server_emulator_instance = http_server_emulator()
+
+		http_resp_body = ba_core.ba_http_resp_json(None, http_server_emulator_instance, 500, None, 
+			{ 
+				"somefield1":"somedata1", "somefield2":"somedata2" 
+			}
+		)
+
+		self.assertEqual(http_server_emulator_instance.resp_code, "500 Error")
+		self.assertEqual(http_server_emulator_instance.headers, 
+			[
+				('Content-type', 'application/json'),
+				('Cache-Control', 'no-cache'),
+				('Pragma', 'no-cache'),
+			]
+		)	
+	
+		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
+
+	def test_ba_http_resp_json_500b(self):
+		http_server_emulator_instance = http_server_emulator()
+
+		http_resp_body = ba_core.ba_http_resp_json(None, http_server_emulator_instance, 500, [ ( 'Header2Field', 'Header2Value' ) ], 
+			{ 
+				"somefield1":"somedata1", "somefield2":"somedata2" 
+			}
+		)
+
+		self.assertEqual(http_server_emulator_instance.resp_code, "500 Error")
+		self.assertEqual(http_server_emulator_instance.headers, 
+			[
+				('Content-type', 'application/json'),
+				('Cache-Control', 'no-cache'),
+				('Pragma', 'no-cache'),
+				('Header2Field', 'Header2Value'),
+			]
+		)
+
+		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
 
 
 if __name__ == '__main__':
