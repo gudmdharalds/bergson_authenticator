@@ -502,7 +502,7 @@ def ba_req_input_password_verify(req_password_str, db_password_hashed, db_salt):
 	after hashing the first with the given db_salt.
 	"""
 
-	return ba_password_hashing(req_password_str, db_salt) == db_password_hashed
+	return (ba_password_hashing(req_password_str, db_salt) == db_password_hashed)
 
 
 #
