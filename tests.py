@@ -1173,6 +1173,307 @@ class TestPasswordFuncs(unittest.TestCase):
 			False
 		)
 
+class TestHttpHandlers(unittest.TestCase):
+	def __init_db(self):
+		self.db_conn = ba_core.ba_db_connect()
+		ba_core.ba_db_create_tables()
+
+
+	def __cleanup(self):
+		db_cursor = self.db_conn.cursor()
+		db_cursor.execute("DROP TABLE users")
+
+		db_cursor = self.db_conn.cursor()
+		db_cursor.execute("DROP TABLE nonce")
+
+		self.db_conn.close
+
+	def __user_create(self, username, password):
+		http_server = http_server_emulator()
+		http_client = http_client_emulator()
+
+		http_req = {
+			'method': 'POST',
+			'host': 'localhost',
+			'path': '/v1/create'
+		}
+
+		http_req_params = { 
+			'username' : username, 
+			'password' : password 
+		}
+
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		(http_parsed_environ, http_parsed_params) = http_client.request_generate(
+			http_req['method'], http_req['host'], http_req['path'], None, http_req_params)
+
+		ba_core.ba_handler_user_create(http_parsed_environ, http_server, None)
+
+		ba_core.BA_MOHAWK_ENABLED = 1
+
+
+	def __gen_basic_http_req(self, username = None, password = None, mohawk_sender_id = None):
+		if (username == None):
+			username = 'myuser'
+
+		if (password == None):
+			password = 'mypass'
+
+		if (mohawk_sender_id == None):
+			mohawk_sender_id = 'testing_entry'		
+
+			http_server = http_server_emulator()
+		http_client = http_client_emulator()
+
+		http_req = {
+			'method': 'POST',
+			'host': 'localhost',
+			'path': '/v1/authenticate'
+		}
+
+		http_req_params = { 
+		}
+
+		if (username != None):
+			http_req_params['username'] = username
+
+		if (password != None):
+			http_req_params['password'] = password
+
+
+		(http_parsed_environ, http_parsed_params) = http_client.request_generate(http_req['method'], http_req['host'], http_req['path'], 
+			None, http_req_params)
+
+
+		# Sign the request
+		mohawk_sender_sig = mohawk.Sender(ba_core.ba_signature_lookup_sender(mohawk_sender_id),
+			"http://" + http_req['host'] + http_req['path'] + "",
+			http_req['method'],
+			content="username=" + http_parsed_params["username"] + "&" + "password=" + http_parsed_params["password"],
+			content_type=http_parsed_environ['CONTENT_TYPE'])
+
+		http_parsed_environ['HTTP_AUTHORIZATION'] = mohawk_sender_sig.request_header
+
+		return (http_server, http_client, http_req, http_req_params, http_parsed_environ, mohawk_sender_sig)
+
+	
+	def test_ba_handler_authenticate_user_no_sig(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_db()
+
+		(http_server, http_client, http_req, http_req_params, http_environ, mohawk_sender_sig) = self.__gen_basic_http_req()
+		ba_core.BA_MOHAWK_ENABLED = 1
+
+		del(http_environ['HTTP_AUTHORIZATION'])
+
+		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(http_server.getinfo()[0], '403 Error')
+
+		self.__cleanup()
+
+
+
+	def test_ba_handler_authenticate_user_currupt_sig(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_db()
+
+		(http_server, http_client, http_req, http_req_params, http_environ, mohawk_sender_sig) = self.__gen_basic_http_req()
+		ba_core.BA_MOHAWK_ENABLED = 1
+
+		# Maximize likelyhood of replacing some character(s)
+		http_environ['HTTP_AUTHORIZATION'] = http_environ['HTTP_AUTHORIZATION'].\
+			replace("a", "s").replace("b", "q").replace("c", "d").replace("d", "e").replace("e", "E").\
+			replace("g", "e").replace("h", "e").replace("i", "e").replace("j", "e").replace("k", "e")
+
+		http_environ['HTTP_AUTHORIZATION'] = http_environ['HTTP_AUTHORIZATION'].\
+			replace("A", "s").replace("B", "q").replace("C", "d").replace("D", "e").replace("E", "e").\
+			replace("G", "s").replace("H", "q").replace("I", "d").replace("J", "e").replace("K", "e")
+
+		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(http_server.getinfo()[0], '403 Error')
+
+		self.__cleanup()
+
+	def test_ba_handler_authenticate_user_currupt_username(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_db()
+
+		(http_server, http_client, http_req, http_req_params, http_environ, mohawk_sender_sig) = self.__gen_basic_http_req()
+		ba_core.BA_MOHAWK_ENABLED = 1
+
+		http_environ['params']['username'] = "yetanotherusername"
+
+		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(http_server.getinfo()[0], '403 Error')
+
+		self.__cleanup()
+
+	def test_ba_handler_authenticate_user_currupt_password(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_db()
+
+		(http_server, http_client, http_req, http_req_params, http_environ, mohawk_sender_sig) = self.__gen_basic_http_req()
+		ba_core.BA_MOHAWK_ENABLED = 1
+
+		http_environ['params']['password'] = "yetanotherpassword"
+
+		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(http_server.getinfo()[0], '403 Error')
+
+		self.__cleanup()
+
+
+	def test_ba_handler_authenticate_user_sig_ok(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_db()
+
+		(http_server, http_client, http_req, http_req_params, http_environ, mohawk_sender_sig) = self.__gen_basic_http_req()
+		ba_core.BA_MOHAWK_ENABLED = 1
+
+		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+
+		# Normal error: The user does not exist
+		self.assertEqual(auth_handler_ret, '{"error": "Access denied"}')
+		self.assertEqual(http_server.getinfo()[0], '403 Error')
+
+		self.__cleanup()
+
+
+	def test_ba_handler_authenticate_user_ok(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_db()
+		self.__user_create("someuser1", "otherPassWord")
+
+		(http_server, http_client, http_req, http_req_params, http_environ, 
+			mohawk_sender_sig) = self.__gen_basic_http_req("someuser1", "otherPassWord")
+
+		ba_core.BA_MOHAWK_ENABLED = 1
+
+		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+
+		self.assertEqual(auth_handler_ret, '{"status": 1, "authenticated": true}')
+		self.assertEqual(http_server.getinfo()[0], '200 OK')
+
+		self.__cleanup()
+
+
+	def test_ba_handler_authenticate_user_username_not_ok(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_db()
+		self.__user_create("someuser1", "otherPassWord")
+
+		(http_server, http_client, http_req, http_req_params, http_environ, 
+			mohawk_sender_sig) = self.__gen_basic_http_req("someuser2", "otherPassWord")
+
+		ba_core.BA_MOHAWK_ENABLED = 1
+
+		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+
+		self.assertEqual(auth_handler_ret, '{"error": "Access denied"}')
+		self.assertEqual(http_server.getinfo()[0], '403 Error')
+
+		self.__cleanup()
+
+
+	def test_ba_handler_authenticate_user_password_not_ok(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_db()
+		self.__user_create("someuser1", "otherPassWorddd")
+
+		(http_server, http_client, http_req, http_req_params, http_environ, 
+			mohawk_sender_sig) = self.__gen_basic_http_req("someuser1", "otherPassWord")
+
+		ba_core.BA_MOHAWK_ENABLED = 1
+
+		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+
+		self.assertEqual(auth_handler_ret, '{"error": "Access denied"}')
+		self.assertEqual(http_server.getinfo()[0], '403 Error')
+
+		self.__cleanup()
+	
+
+	def test_ba_handler_authenticate_user_username_missing(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_db()
+		self.__user_create("someuser1", "otherPassWorddd")
+
+		(http_server, http_client, http_req, http_req_params, http_environ, 
+			mohawk_sender_sig) = self.__gen_basic_http_req(None, "otherPassWord")
+
+		ba_core.BA_MOHAWK_ENABLED = 1
+
+		del(http_environ['params']['username'])
+
+		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+
+		self.assertEqual(auth_handler_ret, '{"error": "Username and/or password missing"}')
+		self.assertEqual(http_server.getinfo()[0], '400 Error')
+
+		self.__cleanup()
+
+
+	def test_ba_handler_authenticate_user_password_missing(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_db()
+		self.__user_create("someuser1", "otherPassWorddd")
+
+		(http_server, http_client, http_req, http_req_params, http_environ, 
+			mohawk_sender_sig) = self.__gen_basic_http_req("someuser1", None)
+
+		ba_core.BA_MOHAWK_ENABLED = 1
+
+		del(http_environ['params']['password'])
+
+		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+
+		self.assertEqual(auth_handler_ret, '{"error": "Username and/or password missing"}')
+		self.assertEqual(http_server.getinfo()[0], '400 Error')
+
+		self.__cleanup()
+
+
+	def test_ba_handler_authenticate_user_db_comm_error(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_db()
+		self.__user_create("someuser1", "otherPassWorddd")
+
+		(http_server, http_client, http_req, http_req_params, http_environ, 
+			mohawk_sender_sig) = self.__gen_basic_http_req("someuser1", "otherPassWorddd")
+
+		ba_core.BA_MOHAWK_ENABLED = 1
+
+		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core.BA_DB_NAME += "-------------------"
+
+		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+
+		self.assertEqual(auth_handler_ret, '{"error": "Database communication error"}')
+		self.assertEqual(http_server.getinfo()[0], '500 Error')
+
+		ba_core.BA_DB_NAME = ba_core_db_name_orig
+
+		self.__cleanup()
+
+
+
+
 
 
 if __name__ == '__main__':
