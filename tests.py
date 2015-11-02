@@ -3,11 +3,13 @@
 
 import unittest
 
-import ba_core
+import mohawk
+import json
 import pprint
 import tempfile
 import time
 import os
+
 
 def dummy_call_func1():
 	return True
@@ -28,6 +30,79 @@ class http_server_emulator():
 		self.resp_code = resp_code
 
 		return True
+
+class http_client_emulator():
+	def request_generate(self, req_method, req_host, req_path, req_headers_extra, req_data):
+		"""
+		Emulate the incoming data from webserver,
+		make PathDispatcher handle it, and then
+		return the result.
+		"""
+
+		http_input_file_info = tempfile.mkstemp()
+                
+		req_data_json = json.dumps(req_data)
+
+		f_http_input_file = http_input_file_info[0]
+
+		f_http_input_file = open(http_input_file_info[1], 'w')
+		f_http_input_file.write(req_data_json)
+		f_http_input_file.close()
+
+
+		f_http_input_file = open(http_input_file_info[1], 'r')
+
+		f_dev_null = open('/dev/null', 'w')
+                 
+		req_headers = {
+			'CONTENT_LENGTH': len(req_data_json),
+			'CONTENT_TYPE': 'application/json',
+			'GATEWAY_INTERFACE': 'CGI/1.1',
+			'HTTP_ACCEPT': '*/*',
+			'HTTP_HOST': req_host,
+			'HTTP_USER_AGENT': 'curl/7.29.0',
+			'PATH_INFO': req_path,
+			'QUERY_STRING': '',
+			'REMOTE_ADDR': '127.0.0.1',
+			'REMOTE_HOST': 'localhost.localdomain',
+			'REQUEST_METHOD': req_method,
+			'SCRIPT_NAME': '',
+			'SERVER_NAME': 'localhost.localdomain',
+			'SERVER_PORT': '8080',
+			'SERVER_PROTOCOL': 'HTTP/1.1',
+			'SERVER_SOFTWARE': 'WSGIServer/0.1 Python/2.7.5',
+			'params': {},
+			'wsgi.errors': f_dev_null,
+			'wsgi.input': f_http_input_file,
+			'wsgi.multiprocess': False,
+			'wsgi.multithread': True,
+			'wsgi.run_once': False,
+			'wsgi.url_scheme': 'http',
+			'wsgi.version': (1, 0)
+		}
+
+		if (req_headers_extra != None):
+			req_headers += req_headers_extra
+
+		path_dispatcher = ba_core.BAPathDispatcher()
+
+		path_dispatcher.register(req_method, req_path, self.request_generate_handler, None)
+
+		http_environ = path_dispatcher.__call__(req_headers, dummy_call_func1)
+
+		del(http_environ['wsgi.errors'])
+		del(http_environ['wsgi.input'])
+
+		f_http_input_file.close()
+		f_dev_null.close()
+
+		os.close(http_input_file_info[0])
+		os.remove(http_input_file_info[1])
+		
+		return (http_environ, http_environ['params'])
+
+	def request_generate_handler(self, http_environ, start_response, args_extra):
+		return http_environ
 
 
 class TestPathDispatcher(unittest.TestCase):
@@ -74,12 +149,12 @@ class TestPathDispatcher(unittest.TestCase):
 		# Emulate HTTP request structures
 		#
 
-		http_input_file_path = tempfile.mkstemp()
-		f_http_input_file = open(http_input_file_path[1], 'w')
+		http_input_file_info = tempfile.mkstemp()
+		f_http_input_file = open(http_input_file_info[1], 'w')
 		f_http_input_file.write('{"username":"myuser","password":"mypass"}')
 		f_http_input_file.close()
 
-		f_http_input_file = open(http_input_file_path[1], 'r')
+		f_http_input_file = open(http_input_file_info[1], 'r')
 		
 		f_dev_null = open('/dev/null', 'w')
 
@@ -120,7 +195,7 @@ class TestPathDispatcher(unittest.TestCase):
 		#
 	
 		f_http_input_file.close()	
-		os.remove(http_input_file_path[1])
+		os.remove(http_input_file_info[1])
 
 		self.assertEqual(self.test_call_json_res, 
 			{ 
@@ -159,12 +234,12 @@ class TestPathDispatcher(unittest.TestCase):
 		# Emulate HTTP request structures
 		#
 
-		http_input_file_path = tempfile.mkstemp()
-		f_http_input_file = open(http_input_file_path[1], 'w')
+		http_input_file_info = tempfile.mkstemp()
+		f_http_input_file = open(http_input_file_info[1], 'w')
 		f_http_input_file.write('')
 		f_http_input_file.close()
 
-		f_http_input_file = open(http_input_file_path[1], 'r')
+		f_http_input_file = open(http_input_file_info[1], 'r')
 		
 		f_dev_null = open('/dev/null', 'w')
 
@@ -205,7 +280,7 @@ class TestPathDispatcher(unittest.TestCase):
 		#
 	
 		f_http_input_file.close()	
-		os.remove(http_input_file_path[1])
+		os.remove(http_input_file_info[1])
 
 		self.assertEqual(self.test_call_text_plain_res, 
 			{ 
@@ -250,12 +325,12 @@ class TestPathDispatcher(unittest.TestCase):
 		# Emulate HTTP request structures
 		#
 
-		http_input_file_path = tempfile.mkstemp()
-		f_http_input_file = open(http_input_file_path[1], 'w')
+		http_input_file_info = tempfile.mkstemp()
+		f_http_input_file = open(http_input_file_info[1], 'w')
 		f_http_input_file.write('username=myyetotheruser&password=myyetotherpass')
 		f_http_input_file.close()
 
-		f_http_input_file = open(http_input_file_path[1], 'r')
+		f_http_input_file = open(http_input_file_info[1], 'r')
 		
 		f_dev_null = open('/dev/null', 'w')
 
@@ -298,7 +373,7 @@ class TestPathDispatcher(unittest.TestCase):
 		#
 	
 		f_http_input_file.close()	
-		os.remove(http_input_file_path[1])
+		os.remove(http_input_file_info[1])
 
 		self.assertEqual(self.test_call_form_urlencoded_res, 
 			{ 
@@ -343,12 +418,12 @@ class TestPathDispatcher(unittest.TestCase):
 		# Emulate HTTP request structures
 		#
 
-		http_input_file_path = tempfile.mkstemp()
-		f_http_input_file = open(http_input_file_path[1], 'w')
+		http_input_file_info = tempfile.mkstemp()
+		f_http_input_file = open(http_input_file_info[1], 'w')
 		f_http_input_file.write('')
 		f_http_input_file.close()
 
-		f_http_input_file = open(http_input_file_path[1], 'r')
+		f_http_input_file = open(http_input_file_info[1], 'r')
 		
 		f_dev_null = open('/dev/null', 'w')
 
@@ -392,7 +467,7 @@ class TestPathDispatcher(unittest.TestCase):
 		#
 	
 		f_http_input_file.close()	
-		os.remove(http_input_file_path[1])
+		os.remove(http_input_file_info[1])
 
 		self.assertEqual(self.test_call_404_res, 
 			{ 
@@ -567,6 +642,8 @@ class TestHttpRespMethods(unittest.TestCase):
 class TestDBRoutines(unittest.TestCase):
 	# FIXME: Implement 
 	def test_db_connect(self):
+		unittest.ba_db_connect_tested = True
+
 		# Make sure we will be connecting to a test-database
 		self.assertEqual(ba_core.BA_DB_NAME.rfind('_test'), len(ba_core.BA_DB_NAME) - len('_test'))
 		self.assertEqual(ba_core.BA_DB_NAME.split('_test'), [ ba_core.BA_DB_NAME_ORIGINAL, '' ])
@@ -658,12 +735,460 @@ class TestReqInput(unittest.TestCase):
 			'f63e20b2f20880f534eac614890f341f01009deb9b7a1475640f1522baf19be568cc' +
 			'f45b16fcdface4b7633497343cb'))
 
+class TestMowhak(unittest.TestCase):
+	def test_signature_lookup_sender(self):
+
+		#
+		# This sender_id exists
+		#
+
+		self.assertEqual(ba_core.ba_signature_lookup_sender('testing_entry'), 
+			ba_core.BA_MOHAWK_SENDERS['testing_entry'])
+
+		
+		# These sender_id's do not exist
+		#
+
+		with self.assertRaises(LookupError):
+			ba_core.ba_signature_lookup_sender(' testing_entry')
+
+		with self.assertRaises(LookupError):
+			ba_core.ba_signature_lookup_sender('testing_entry ')
+
+		with self.assertRaises(LookupError):
+			ba_core.ba_signature_lookup_sender('testing_Entry')
+
+	def test_ba_signature_mohawk_on_all_ok(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		db_conn = ba_core.ba_db_connect()
+
+		ba_core.ba_db_create_tables()
+
+		#
+		# Because ba_core.ba_signature() contains a probability
+		# condition, repeat this quite often
+		#
+
+		for i in range(0, 250):
+			http_client = http_client_emulator()	
+
+			req_method = 'POST'
+			req_host = '127.0.0.1:8080'
+			req_path = '/v1/create'
+			req_extra_headers = None
+			req_data_orig = { 'username' : 'myuser', 'password': 'mypass' }
+			req_data_mohawk_test = "username=" + req_data_orig["username"] + "&" + "password=" + req_data_orig["password"]
+
+			#
+			# Simulate http client request and
+			# get result 
+			#
+
+			(http_environ, http_req_params) = http_client.request_generate(req_method, req_host, req_path, req_extra_headers, req_data_orig)
+	
+			# Sign the request
+			sender = mohawk.Sender(ba_core.ba_signature_lookup_sender('testing_entry'),
+				"http://" + req_host + req_path,
+				req_method,
+				content="username=" + http_req_params["username"] + "&" + "password=" + http_req_params["password"],
+				content_type=http_environ['CONTENT_TYPE'])
+	
+			http_environ['HTTP_AUTHORIZATION'] = sender.request_header	
+	
+			#
+			# Try to validate request using Mohawk
+			# 
+	
+			# Mohawk will throw an exception if validation
+			# fails. We do not have to.
+			ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
+
+                
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE users")
+                
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE nonce")
+
+		db_conn.close()
+
+
+	def test_ba_signature_mohawk_on_invalid_http_path(self):
+		"""
+		Try if validation fails with Mohawk turned on.
+		"""
+
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		db_conn = ba_core.ba_db_connect()
+
+		ba_core.ba_db_create_tables()
+
+		#
+		# Because ba_core.ba_signature() contains a probability
+		# condition, repeat this quite often
+		#
+
+		for i in range(0, 250):
+			http_client = http_client_emulator()	
+
+			req_method = 'POST'
+			req_host = '127.0.0.1:8080'
+			req_path = '/v1/create'
+			req_extra_headers = None
+			req_data_orig = { 'username' : 'myuser', 'password': 'mypass' }
+			req_data_mohawk_test = "username=" + req_data_orig["username"] + "&" + "password=" + req_data_orig["password"]
+
+			#
+			# Simulate http client request and
+			# get result 
+			#
+
+			(http_environ, http_req_params) = http_client.request_generate(req_method, req_host, req_path, req_extra_headers, req_data_orig)
+	
+			# Sign the request
+			sender = mohawk.Sender(ba_core.ba_signature_lookup_sender('testing_entry'),
+				"http://" + req_host + req_path + "erronus",
+				req_method,
+				content="username=" + http_req_params["username"] + "&" + "password=" + http_req_params["password"],
+				content_type=http_environ['CONTENT_TYPE'])
+	
+			http_environ['HTTP_AUTHORIZATION'] = sender.request_header	
+	
+			#
+			# Try to validate request using Mohawk
+			# 
+
+			with self.assertRaises(mohawk.exc.MacMismatch):
+				# Mohawk will throw an exception if validation
+				# fails. We do not have to.
+				ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
+
+                
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE users")
+                
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE nonce")
+
+		db_conn.close()
+
+
+	def test_ba_signature_mohawk_on_injected_data(self):
+		"""
+		Try if validation fails with Mohawk turned on.
+		"""
+
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		db_conn = ba_core.ba_db_connect()
+
+		ba_core.ba_db_create_tables()
+
+		#
+		# Because ba_core.ba_signature() contains a probability
+		# condition, repeat this quite often
+		#
+
+		for i in range(0, 250):
+			http_client = http_client_emulator()	
+
+			req_method = 'POST'
+			req_host = '127.0.0.1:8080'
+			req_path = '/v1/create'
+			req_extra_headers = None
+			req_data_orig = { 'username' : 'myuser', 'password': 'mypass' }
+			req_data_mohawk_test = "username=mySOMEUSER&" + "password=mySOMEPASSWORD"
+
+			#
+			# Simulate http client request and
+			# get result 
+			#
+
+			(http_environ, http_req_params) = http_client.request_generate(req_method, req_host, req_path, req_extra_headers, req_data_orig)
+	
+			# Sign the request
+			sender = mohawk.Sender(ba_core.ba_signature_lookup_sender('testing_entry'),
+				"http://" + req_host + req_path + "",
+				req_method,
+				content="username=" + http_req_params["username"] + "&" + "password=" + http_req_params["password"],
+				content_type=http_environ['CONTENT_TYPE'])
+	
+			http_environ['HTTP_AUTHORIZATION'] = sender.request_header	
+	
+			#
+			# Try to validate request using Mohawk
+			# 
+
+			
+
+			with self.assertRaises(mohawk.exc.MacMismatch):
+				# Mohawk will throw an exception if validation
+				# fails. We do not have to.
+				ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
+
+                
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE users")
+                
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE nonce")
+
+		db_conn.close()
+
+
+	def test_ba_signature_mohawk_on_repeated_token(self):
+		"""
+		Try if validation fails with Mohawk turned on.
+		"""
+
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		db_conn = ba_core.ba_db_connect()
+
+		ba_core.ba_db_create_tables()
+
+		#
+		# Because ba_core.ba_signature() contains a probability
+		# condition, repeat this quite often
+		#
+
+		for i in range(0, 250):
+			http_client = http_client_emulator()	
+
+			req_method = 'POST'
+			req_host = '127.0.0.1:8080'
+			req_path = '/v1/create'
+			req_extra_headers = None
+			req_data_orig = { 'username' : 'myuser', 'password': 'mypass' }
+			req_data_mohawk_test = "username=" + req_data_orig["username"] + "&" + "password=" + req_data_orig["password"]
+
+			#
+			# Simulate http client request and
+			# get result 
+			#
+
+			(http_environ, http_req_params) = http_client.request_generate(req_method, req_host, req_path, req_extra_headers, req_data_orig)
+	
+			# Sign the request
+			sender = mohawk.Sender(ba_core.ba_signature_lookup_sender('testing_entry'),
+				"http://" + req_host + req_path + "",
+				req_method,
+				content="username=" + http_req_params["username"] + "&" + "password=" + http_req_params["password"],
+				content_type=http_environ['CONTENT_TYPE'])
+	
+			http_environ['HTTP_AUTHORIZATION'] = sender.request_header
+	
+			#
+			# Try to validate request using Mohawk
+			# 
+	
+			# Mohawk will throw an exception if validation
+			# fails. We do not have to.
+			ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
+
+			# Try repeatedly to re-use token -- should not work
+			for x in range(0, 10):
+				with self.assertRaises(mohawk.exc.AlreadyProcessed):
+					ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
+
+
+                
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE users")
+                
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE nonce")
+
+		db_conn.close()
+
+
+	def test_ba_signature_mohawk_off_all_ok(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		db_conn = ba_core.ba_db_connect()
+
+		ba_core.ba_db_create_tables()
+
+		#
+		# Because ba_core.ba_signature() contains a probability
+		# condition, repeat this quite often
+		#
+
+		for i in range(0, 250):
+			http_client = http_client_emulator()	
+
+			req_method = 'POST'
+			req_host = '127.0.0.1:8080'
+			req_path = '/v1/create'
+			req_extra_headers = None
+			req_data_orig = { 'username' : 'myuser', 'password': 'mypass' }
+			req_data_mohawk_test = "username=" + req_data_orig["username"] + "&" + "password=" + req_data_orig["password"]
+
+			#
+			# Simulate http client request and
+			# get result 
+			#
+
+			(http_environ, http_req_params) = http_client.request_generate(req_method, req_host, req_path, req_extra_headers, req_data_orig)
+	
+	
+			#
+			# Try to validate request using Mohawk
+			# 
+
+			ba_core.BA_MOHAWK_ENABLED = 0
+
+			# Mohawk will throw an exception if validation
+			# fails. We do not have to.
+			ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
+
+			ba_core.BA_MOHAWK_ENABLED = 1
+
+                
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE users")
+                
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE nonce")
+
+		db_conn.close()
+
+
+	def test_ba_signature_mohawk_off_auth_headers_sent(self):
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		db_conn = ba_core.ba_db_connect()
+
+		ba_core.ba_db_create_tables()
+
+		#
+		# Because ba_core.ba_signature() contains a probability
+		# condition, repeat this quite often
+		#
+
+		for i in range(0, 250):
+			http_client = http_client_emulator()	
+
+			req_method = 'POST'
+			req_host = '127.0.0.1:8080'
+			req_path = '/v1/create'
+			req_extra_headers = None
+			req_data_orig = { 'username' : 'myuser', 'password': 'mypass' }
+			req_data_mohawk_test = "username=" + req_data_orig["username"] + "&" + "password=" + req_data_orig["password"]
+
+			#
+			# Simulate http client request and
+			# get result 
+			#
+
+			(http_environ, http_req_params) = http_client.request_generate(req_method, req_host, req_path, req_extra_headers, req_data_orig)
+
+			# Sign the request
+			sender = mohawk.Sender(ba_core.ba_signature_lookup_sender('testing_entry'),
+				"http://" + req_host + req_path + "",
+				req_method,
+				content="username=" + http_req_params["username"] + "&" + "password=" + http_req_params["password"],
+				content_type=http_environ['CONTENT_TYPE'])
+	
+			http_environ['HTTP_AUTHORIZATION'] = sender.request_header
+
+			ba_core.BA_MOHAWK_ENABLED = 0
+	
+			#
+			# Try to validate request  
+			# 
+
+			with self.assertRaises(AssertionError):
+				ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
+
+			ba_core.BA_MOHAWK_ENABLED = 1
+ 
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE users")
+                
+		db_cursor = db_conn.cursor()
+		db_cursor.execute("DROP TABLE nonce")
+
+		db_conn.close()
+
+
+class TestPasswordFuncs(unittest.TestCase):
+	def test_ba_password_create_salt(self):
+		for i in range(0, 250):
+
+			salt = ba_core.ba_password_create_salt()
+			
+			salt.encode("ascii")
+
+			for salt_pos in range(0, len(salt)):
+				assert salt[salt_pos] != ' '
+				assert salt[salt_pos] != '\r'
+				assert salt[salt_pos] != '\n'
+
+	def test_ba_password_hashing(self):
+		for i in range(0, 10):
+			self.assertEqual(
+				ba_core.ba_password_hashing(
+					'1dd57b94b4d31c0456589ae5ca7f5fcc1c09d1bec0d386c08f9ef8447901cc2d', 
+					'giCLXllkoQTEyIg1M+XmMA=='),
+				'02ec7fc293326887397dd8f1386e959784dd941cc690952db5f4d71c97960ce8'
+			)
+
+	def test_ba_req_input_password_verify(self):
+		self.assertEqual(
+			ba_core.ba_req_input_password_verify(
+				'1dd57b94b4d31c0456589ae5ca7f5fcc1c09d1bec0d386c08f9ef8447901cc2d', 
+				'02ec7fc293326887397dd8f1386e959784dd941cc690952db5f4d71c97960ce8', 
+				'giCLXllkoQTEyIg1M+XmMA=='
+			), 
+			True
+		)
+
+		self.assertEqual(
+			ba_core.ba_req_input_password_verify(
+				'1dd57b94b4d31c0456589ae5ca7f5fcc1c09d1bec0d386XXXXXXXXXXXXX', 
+				'02ec7fc293326887397dd8f1386e959784dd941cc690952db5f4d71c97960ce8', 
+				'giCLXllkoQTEyIg1M+XmMA=='
+			), 
+			False
+		)
+
+		self.assertEqual(
+			ba_core.ba_req_input_password_verify(
+				'1dd57b94b4d31c0456589ae5ca7f5fcc1c09d1bec0d386c08f9ef8447901cc2d', 
+				'02ec7fc293326887397dd8f1386e959784dd941cc690952dXXXXXXXXXXXX', 
+				'giCLXllkoQTEyIg1M+XmMA=='
+			), 
+			False
+		)
+
+		self.assertEqual(
+			ba_core.ba_req_input_password_verify(
+				'1dd57b94b4d31c0456589ae5ca7f5fcc1c09d1bec0d386c08f9ef8447901cc2d', 
+				'02ec7fc293326887397dd8f1386e959784dd941cc690952db5f4d71c97960ce8',
+				'giCLXllkoQTEyIg1M=='
+			), 
+			False
+		)
+
 
 
 if __name__ == '__main__':
+	import ba_core
+
 	# Make sure we emply the test database here
 	ba_core.BA_DB_NAME_ORIGINAL = ba_core.BA_DB_NAME
 	ba_core.BA_DB_NAME = ba_core.BA_DB_NAME + "_test"
+	ba_core.BA_MOHAWK_SENDERS = { 
+		'testing_entry': {
+				'id':		'testing_entry',
+				'key':		'ff1a7e041a77f4995cc9337587b004edd1477ddda5fac8ed539890cbc91829af',
+				'algorithm':	'sha256',
+		}
+	}
 
+	unittest.ba_db_connect_tested = False
 	unittest.main()
 
