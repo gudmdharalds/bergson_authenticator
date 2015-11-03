@@ -540,6 +540,8 @@ def ba_handler_authenticate(http_environ, start_response, args_extra):
 	# Check if username is acceptable
 	# by our policy
 	#
+	# FIXME: Remove, and do only minimal checking.
+	#
 
 	if (ba_req_input_check_username(req_username) != True):
 		return ba_http_resp_json(None, start_response, 406, None, { 'error': 'Username is not acceptable' })
@@ -994,6 +996,9 @@ def ba_handler_options(http_environ, start_response, url_methods_supported):
 
 def ba_dispatcher_init():
 	dispatcher = BAPathDispatcher()
+
+	# FIXME: /v1/user/ ... 
+
 	dispatcher.register('POST', '/v1/create', ba_handler_user_create)
 	dispatcher.register('OPTIONS', '/v1/create', ba_handler_options, 'POST,OPTIONS')
 
