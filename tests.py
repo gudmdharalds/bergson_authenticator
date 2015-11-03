@@ -685,7 +685,7 @@ class TestDBRoutines(unittest.TestCase):
 		db_table_info_nonce = db_cursor.fetchall()
 
 		self.assertEqual(db_table_info_nonce[0], ('id', 'bigint(20)', 'NO', 'PRI', None, 'auto_increment'))
-		self.assertEqual(db_table_info_nonce[1], ('nonce_key_hash', 'varchar(64)', 'NO', '', None, ''))
+		self.assertEqual(db_table_info_nonce[1], ('nonce_key_hash', 'varchar(64)', 'NO', 'MUL', None, ''))
 		self.assertEqual(db_table_info_nonce[2], ('timestamp', 'bigint(20)', 'NO', '', None, ''))
 
 		db_cursor = db_conn.cursor()
@@ -1353,7 +1353,39 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertTrue(unittest.ba_db_connect_tested)
 
 		self.__init_db()
+
+		#
+		# Do this a few times, just
+		# to make sure all the DB-work
+		# is good -- especially the Mohawk stuff.
+		#
+
+		for i in range(0, 10):
+			self.__user_create("someuser" + str(i), "otherPassWord")
+
+			for x in range(0, 5):
+				(http_server, http_client, http_req, http_req_params, http_environ, 
+					mohawk_sender_sig) = self.__gen_basic_http_req("someuser" + str(i), "otherPassWord")
+
+				ba_core.BA_MOHAWK_ENABLED = 1
+	
+				auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+		
+				self.assertEqual(auth_handler_ret, '{"status": 1, "authenticated": true}')
+				self.assertEqual(http_server.getinfo()[0], '200 OK')
+
+		self.__cleanup()
+
+
+	def test_ba_handler_authenticate_user_disabled_error(self):
+#		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_db()
 		self.__user_create("someuser1", "otherPassWord")
+
+		db_cursor = self.db_conn.cursor()
+		db_cursor.execute("UPDATE users SET enabled = 0 WHERE username = 'someuser1'")
+		self.db_conn.commit()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req("someuser1", "otherPassWord")
@@ -1362,7 +1394,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"status": 1, "authenticated": true}')
+		self.assertEqual(auth_handler_ret, '{"error": "Access denied"}')
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
 
 		self.__cleanup()
