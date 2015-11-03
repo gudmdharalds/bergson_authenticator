@@ -270,6 +270,7 @@ def ba_db_create_tables():
 					`id` bigint(20) NOT NULL AUTO_INCREMENT,	\
 					`nonce_key_hash` varchar(64) NOT NULL,		\
 					`timestamp` bigint(20) NOT NULL, 		\
+					KEY (nonce_key_hash),				\
 					PRIMARY KEY (`id`)				\
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8			\
 			")
