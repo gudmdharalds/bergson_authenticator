@@ -526,7 +526,7 @@ class TestHttpRespMethods(unittest.TestCase):
 		http_server_emulator_instance = http_server_emulator()
 		http_resp_body = ba_core.ba_http_resp_404(None, http_server_emulator_instance, None)
 
-		self.assertEqual(http_resp_body, '{"error": "Not found"}')
+		self.assertEqual(json.loads(http_resp_body), json.loads('{"error": "Not found"}'))
 		self.assertEqual(http_server_emulator_instance.getinfo(),	('404 Not Found', 
 			[ 
 				('Content-type', 'application/json'), 
@@ -553,7 +553,7 @@ class TestHttpRespMethods(unittest.TestCase):
 			]
 		)
 
-		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
+		self.assertEqual(json.loads(http_resp_body), json.loads('{"somefield2": "somedata2", "somefield1": "somedata1"}'))
 
 	def test_ba_http_resp_json_200b(self):
 		http_server_emulator_instance = http_server_emulator()
@@ -574,7 +574,7 @@ class TestHttpRespMethods(unittest.TestCase):
 			]
 		)
 
-		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
+		self.assertEqual(json.loads(http_resp_body), json.loads('{"somefield2": "somedata2", "somefield1": "somedata1"}'))
 
 
 	def test_ba_http_resp_json_404a(self):
@@ -595,7 +595,7 @@ class TestHttpRespMethods(unittest.TestCase):
 			]
 		)
 
-		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
+		self.assertEqual(json.loads(http_resp_body), json.loads('{"somefield2": "somedata2", "somefield1": "somedata1"}'))
 
 	def test_ba_http_resp_json_404b(self):
 		http_server_emulator_instance = http_server_emulator()
@@ -616,7 +616,7 @@ class TestHttpRespMethods(unittest.TestCase):
 			]
 		)
 
-		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
+		self.assertEqual(json.loads(http_resp_body), json.loads('{"somefield2": "somedata2", "somefield1": "somedata1"}'))
 
 
 	def test_ba_http_resp_json_500a(self):
@@ -637,7 +637,7 @@ class TestHttpRespMethods(unittest.TestCase):
 			]
 		)	
 	
-		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
+		self.assertEqual(json.loads(http_resp_body), json.loads('{"somefield2": "somedata2", "somefield1": "somedata1"}'))
 
 	def test_ba_http_resp_json_500b(self):
 		http_server_emulator_instance = http_server_emulator()
@@ -658,7 +658,7 @@ class TestHttpRespMethods(unittest.TestCase):
 			]
 		)
 
-		self.assertEqual(http_resp_body, '{"somefield2": "somedata2", "somefield1": "somedata1"}')
+		self.assertEqual(json.loads(http_resp_body), json.loads('{"somefield2": "somedata2", "somefield1": "somedata1"}'))
 
 class TestDBRoutines(unittest.TestCase):
 	def test_db_connect(self):
@@ -666,7 +666,7 @@ class TestDBRoutines(unittest.TestCase):
 
 		# Make sure we will be connecting to a test-database
 		self.assertEqual(ba_core.BA_DB_NAME.rfind('_test'), len(ba_core.BA_DB_NAME) - len('_test'))
-		self.assertEqual(ba_core.BA_DB_NAME.split('_test'), [ ba_core.BA_DB_NAME_ORIGINAL, '' ])
+		self.assertEqual(ba_core.BA_DB_NAME.split('_test'), [ ba_core.BA_DB_NAME_NOT_TESTING, '' ])
 
 		db_conn = ba_core.ba_db_connect()
 
@@ -1194,10 +1194,14 @@ class TestPasswordFuncs(unittest.TestCase):
 		)
 
 class TestHttpHandlers(unittest.TestCase):
-	def __init_db(self):
+	def __init_test(self):
+		ba_core.BA_DB_NAME = ba_core.ORIG_CONFIG_BA_DB_NAME 
+		ba_core.BA_MOHAWK_ENABLED = ba_core.ORIG_CONFIG_BA_MOHAWK_ENABLED
+		ba_core.BA_MOHAWK_SENDERS = ba_core.ORIG_CONFIG_BA_MOHAWK_SENDERS 
+
 		self.db_conn = ba_core.ba_db_connect()
 		ba_core.ba_db_create_tables()
-
+	
 
 	def __cleanup(self):
 		db_cursor = self.db_conn.cursor()
@@ -1280,9 +1284,6 @@ class TestHttpHandlers(unittest.TestCase):
 
 			mohawk_sender_data['content'] += 'password=' + http_parsed_params['password']
 
-#		print "\n --> "; pprint.pprint(mohawk_sender_data['content'])
-
-
 		mohawk_sender_sig = mohawk.Sender(ba_core.ba_signature_lookup_sender(mohawk_sender_id),
 			"http://" + http_req['host'] + http_req['path'] + "",
 			http_req['method'],
@@ -1293,16 +1294,21 @@ class TestHttpHandlers(unittest.TestCase):
 
 		return (http_server, http_client, http_req, http_req_params, http_parsed_environ, mohawk_sender_sig)
 
-	# FIXME: Unit tests should not be stateful. Remove stateful code, or otherwise
-	#	 compensate via some init function.
-
-	# FIXME: Walk through these, try disabling the real test and make sure all tests are
-	#	 doing what they should be doing.
+	#
+	# FIXME: Do data integrity checks -- data might have been
+	#	 disturbed although errors are return.
+	#	 Make sure all possibly relevant fields are checked.
 	
 	def test_ba_handler_authenticate_user_no_sig(self):
+		"""
+		Create user. Then try to authenticate using correct username & password,
+		but with no HTTP Authoriziation (Hawk) header. Should result in an error.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
+		self.__user_create("myuser", "mypass")
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 'myuser', 'mypass')
@@ -1312,16 +1318,22 @@ class TestHttpHandlers(unittest.TestCase):
 		del(http_environ['HTTP_AUTHORIZATION'])
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
-		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_authenticate_user_corrupt_sig(self):
+		"""
+		Create valid user & password. Then try to authenticate with a
+		request that has invalid Hawk header.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
+		self.__user_create("myuser", "mypass")
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 'myuser', 'mypass')
@@ -1338,34 +1350,47 @@ class TestHttpHandlers(unittest.TestCase):
 			replace("G", "s").replace("H", "q").replace("I", "d").replace("J", "e").replace("K", "e")
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
-		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_authenticate_user_corrupt_username(self):
+		"""
+		Create username & password, emulate request, and sign it. Then corrupt
+		the username sent. Should result in an error.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
+		self.__user_create('myusername', 'mypassword')
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 'myusername', 'mypassword')
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			'myusername', 'mypassword')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['username'] = "yetanotherusername"
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
-		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 	def test_ba_handler_authenticate_user_corrupt_password(self):
+		"""
+		Create username & password, emulate request, and sign it. Then corrupt
+		the password sent. Should result in an error.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
+		self.__user_create('myusername', 'mypassword')
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST',
@@ -1376,16 +1401,21 @@ class TestHttpHandlers(unittest.TestCase):
 		http_environ['params']['password'] = "yetanotherpassword"
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
-		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_authenticate_user_sig_ok(self):
+		"""
+		Do not create any user, but try to authenticate with an account
+		that does not exist. Should result in a 403 Access Denied error.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST',
@@ -1396,16 +1426,21 @@ class TestHttpHandlers(unittest.TestCase):
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
 		# Normal error: The user does not exist
-		self.assertEqual(auth_handler_ret, '{"error": "Access denied"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Access denied"}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_authenticate_user_ok(self):
+		"""
+		Create a series of users. Then try to authenticate against these
+		users, with a valid password, using valid Hawk-signature. Should succeed.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 
 		#
 		# Do this a few times, just
@@ -1425,16 +1460,72 @@ class TestHttpHandlers(unittest.TestCase):
 	
 				auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 		
-				self.assertEqual(auth_handler_ret, '{"status": 1, "authenticated": true}')
+				self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "authenticated": true}'))
 				self.assertEqual(http_server.getinfo()[0], '200 OK')
 
 		self.__cleanup()
 
 
-	def test_ba_handler_authenticate_user_disabled_error(self):
+	def test_ba_handler_authenticate_user_ok_sometimes(self):
+		"""
+		Create a series of users. Then try to authenticate against these
+		users, sometimes with a valid password, but using valid Hawk-signature. Should succeed
+		when using a valid password, otherwise not.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
+
+		#
+		# Do this a few times, just
+		# to make sure all the DB-work
+		# is good -- especially the Mohawk stuff.
+		#
+
+		for i in range(0, 10):
+			self.__user_create("someuser" + str(i), "otherPassWord")
+
+			for x in range(0, 6):
+				if (x % 2 == 0):
+					let_it_succeed = True
+				else:
+					let_it_succeed = False
+
+				try_login_password = "otherPassWord"
+
+				if (let_it_succeed == False):
+					try_login_password += str(x)
+
+				(http_server, http_client, http_req, http_req_params, http_environ, 
+					mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+					"someuser" + str(i), try_login_password)
+
+				ba_core.BA_MOHAWK_ENABLED = 1
+	
+				auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
+
+				if (let_it_succeed == True):
+					self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "authenticated": true}'))
+					self.assertEqual(http_server.getinfo()[0], '200 OK')
+
+
+				elif (let_it_succeed == False):
+					self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Access denied"}'))
+					self.assertEqual(http_server.getinfo()[0], '403 Error')
+
+		self.__cleanup()
+
+
+	def test_ba_handler_authenticate_user_disabled_error(self):
+		"""
+		Create user, then disable it, and try to authenticate against it,
+		using valid Hawk header; should result in an error.
+		"""
+
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_test()
 		self.__user_create("someuser1", "otherPassWord")
 
 		db_cursor = self.db_conn.cursor()
@@ -1449,16 +1540,21 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Access denied"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Access denied"}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_authenticate_user_username_not_ok(self):
+		"""
+		Create user, try to authenticate but using a username that
+		does not exist; should result in a 403 Access denied error.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 		self.__user_create("someuser1", "otherPassWord")
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
@@ -1469,16 +1565,21 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Access denied"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Access denied"}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_authenticate_user_password_not_ok(self):
+		"""
+		Create user, try to authenticate but using a password that
+		is not valid; should result in a 403 Access denied error.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 		self.__user_create("someuser1", "otherPassWorddd")
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
@@ -1489,16 +1590,21 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Access denied"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Access denied"}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 	
 
 	def test_ba_handler_authenticate_user_username_missing(self):
+		"""
+		Create user, try to authenticate but missing the username;
+		should result in a missing parameter error. 
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 		self.__user_create("someuser1", "otherPassWorddd")
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
@@ -1509,16 +1615,21 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Username and/or password missing"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username and/or password missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_authenticate_user_password_missing(self):
+		"""
+		Create user, try to authenticate but missing the password;
+		should result in a missing parameter error. 
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 		self.__user_create("someuser1", "otherPassWorddd")
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
@@ -1529,16 +1640,21 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Username and/or password missing"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username and/or password missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_authenticate_user_db_comm_error(self):
+		"""
+		Create user, try to authenticate using valid username and
+		password, but DB-comm error occurs when trying to validate.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 		self.__user_create("someuser1", "otherPassWorddd")
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
@@ -1551,7 +1667,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Database communication error"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
@@ -1560,12 +1676,15 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	### User create
-
 	
 	def test_ba_handler_user_create_no_sig(self):
+		"""
+		Attempt to create user, but request is with no Hawk-authorization.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST',
@@ -1576,16 +1695,20 @@ class TestHttpHandlers(unittest.TestCase):
 		del(http_environ['HTTP_AUTHORIZATION'])
 
 		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
-		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
-
 	def test_ba_handler_user_create_corrupt_sig(self):
+		"""
+		Attempt to crate user, simulate that the Hawk-signature
+		is corrupt; should result in a 403 Error.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST',
@@ -1604,15 +1727,20 @@ class TestHttpHandlers(unittest.TestCase):
 			replace("G", "s").replace("H", "q").replace("I", "d").replace("J", "e").replace("K", "e")
 
 		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
-		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 	def test_ba_handler_user_create_corrupt_username(self):
+		"""
+		Attempt to create a user, using a valid signature, but remove the 
+		username from the request; should result in an error.
+			"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', 
@@ -1623,15 +1751,20 @@ class TestHttpHandlers(unittest.TestCase):
 		http_environ['params']['username'] = "yetanotherusername"
 
 		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
-		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 	def test_ba_handler_user_create_corrupt_password(self):
+		"""
+		Attempt to create a user, using a valid signature, but remove the 
+		password from the request; should result in an error.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', 
@@ -1642,36 +1775,21 @@ class TestHttpHandlers(unittest.TestCase):
 		http_environ['params']['password'] = "yetanotherpassword"
 
 		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
-		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 
-	def test_ba_handler_user_create_sig_ok(self):
-		self.assertTrue(unittest.ba_db_connect_tested)
-
-		self.__init_db()
-
-		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', 
-			'someuser', 'onepassword')
-
-		ba_core.BA_MOHAWK_ENABLED = 1
-
-		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
-
-		# Normal error: The user does not exist
-		self.assertEqual(auth_handler_ret, '{"status": 1, "username": "someuser"}')
-		self.assertEqual(http_server.getinfo()[0], '200 OK')
-
-		self.__cleanup()
-
-
 	def test_ba_handler_user_create_ok(self):
+		"""
+		Attempt to create a user, using a valid signature,
+		valid username, valid password. Do this multiple times.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
@@ -1688,16 +1806,20 @@ class TestHttpHandlers(unittest.TestCase):
 	
 			auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
 
-			self.assertEqual(auth_handler_ret, '{"status": 1, "username": "someuser' + str(i) + '"}')
+			self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "username": "someuser' + str(i) + '"}'))
 			self.assertEqual(http_server.getinfo()[0], '200 OK')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_user_create_username_not_ok(self):
+		"""
+		Attempt to create a user with an invalid username.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', 
@@ -1707,16 +1829,20 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Username is not acceptable"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username is not acceptable"}'))
 		self.assertEqual(http_server.getinfo()[0], '406 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_user_create_password_not_ok(self):
+		"""
+		Attempt to create a user with an invalid password.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', 
@@ -1726,16 +1852,21 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Password is not acceptable"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Password is not acceptable"}'))
 		self.assertEqual(http_server.getinfo()[0], '406 Error')
 
 		self.__cleanup()
 	
 
 	def test_ba_handler_user_create_username_missing(self):
+		"""
+		Attempt to create a user-account with a valid password,
+		but not username. Request is signed. 
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', None, "otherPassWord")
@@ -1745,16 +1876,21 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Username and/or password missing"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username and/or password missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_user_create_password_missing(self):
+		"""
+		Attempt to create a user-account with a valid username,
+		but no password. Request is signed.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', "someuser1", None)
@@ -1764,22 +1900,27 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Username and/or password missing"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username and/or password missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
 		self.__cleanup()
 
 	def test_ba_handler_user_create_user_exists(self):
+		"""
+		Attempt to create a user-account, with a username that already exists.
+		Request is signed.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', "someuser1", "thatpassword1")
 
 		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"status": 1, "username": "someuser1"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "username": "someuser1"}'))
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
 
 
@@ -1789,16 +1930,21 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Username exists"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username exists"}'))
 		self.assertEqual(http_server.getinfo()[0], '422 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_user_create_db_comm_error(self):
+		"""
+		Attempt to create a user, but simulate that
+		connection to DB could not be established. 
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 		self.__user_create("someuser1", "otherPassWorddd")
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
@@ -1811,20 +1957,25 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Database communication error"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
 		self.__cleanup()
 
-
 	### User exists
 
 	def test_ba_handler_user_exists_no_sig(self):
+		"""
+		Check if user exists, but no Hawk authorization header
+		is part of request.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
+		self.__user_create('someuser', 'somepassword')
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET', 
@@ -1835,20 +1986,25 @@ class TestHttpHandlers(unittest.TestCase):
 		del(http_environ['HTTP_AUTHORIZATION'])
 
 		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
-		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_user_exists_sig_corrupt(self):
+		"""
+		Check if user exists, but corrupt Hawk authorization header.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
+		self.__user_create('otheruser', 'somepass')
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET',
-			'someuser', 'otherpassword')
+			'someuser')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
@@ -1864,74 +2020,95 @@ class TestHttpHandlers(unittest.TestCase):
 			replace("G", "s").replace("H", "q").replace("I", "d").replace("J", "e").replace("K", "e")
 
 		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
-		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 	def test_ba_handler_user_exists_corrupt_username(self):
+		"""
+		Check if user exists, but Hawk data is corrupt,
+		so request should fail.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
+		self.__user_create('someuser', 'somepassword15')
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET', 
-			'someuser', 'somepassword')
+			'someuser')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['username'] = "yetanotherusername"
 
 		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
-		self.assertEqual(auth_handler_ret, '{"error": "Signature validation of your request failed."}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
 
 	def test_ba_handler_user_exists_username_not_ok(self):
-#		self.assertTrue(unittest.ba_db_connect_tested)
+		"""
+		Check if user exists, but use invalid username.
+		"""
 
-		self.__init_db()
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_test()
+		self.__user_create('someusername', 'atleastpassword')
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET', 
-			"someotherusername---")
+			"someusername---")
 
-		#pprint.pprint(http_environ)
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Username is not acceptable"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username is not acceptable"}'))
 		self.assertEqual(http_server.getinfo()[0], '406 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_user_exists_username_missing(self):
+		"""
+		Check if user exists, with no username (but password).
+		Should fail.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
+		self.__user_create('someuser', 'ispassword')
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET', None, "otherPassWord")
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET', None)
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Username missing"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
 		self.__cleanup()
 
 
 	def test_ba_handler_user_exists_db_comm_error(self):
+		"""
+		Check if user exists, but simulate DB-communication
+		error when checking. Should fail gracefully.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 		self.__user_create("someuser1", "otherPassWorddd")
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
@@ -1945,17 +2122,23 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Database communication error"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
 		self.__cleanup()
 
-	def test_ba_handler_user_exists_ok(self):
-#		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+	def test_ba_handler_user_exists_ok(self):
+		"""
+		Check if user exists, with a valid username,
+		should succeed.
+		"""
+
+		self.assertTrue(unittest.ba_db_connect_tested)
+
+		self.__init_test()
 		self.__user_create("someuser1", "otherPassWorddd")
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
@@ -1968,16 +2151,23 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"status": 1, "message": "Username exists"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "message": "Username exists"}'))
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
 		self.__cleanup()
+
+
 	def test_ba_handler_user_exists_no_user_existing(self):
+		"""
+		Check if username exists with a user that does
+		not exist. Should return an error.
+		"""
+
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__init_db()
+		self.__init_test()
 		self.__user_create("someuser1", "otherPassWorddd")
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
@@ -1990,7 +2180,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
 
-		self.assertEqual(auth_handler_ret, '{"error": "Username does not exist"}')
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
@@ -1998,13 +2188,22 @@ class TestHttpHandlers(unittest.TestCase):
 		self.__cleanup()
 
 
+	# FIXME: Implement testing for changing of password
+
+	# FIXME: Implement testing for enabling user
+
+	# FIXME: Implement testing for disabling user
+
 
 if __name__ == '__main__':
 	import ba_core
 
 	# Make sure we emply the test database here
-	ba_core.BA_DB_NAME_ORIGINAL = ba_core.BA_DB_NAME
+
+	ba_core.BA_DB_NAME_NOT_TESTING = ba_core.BA_DB_NAME
 	ba_core.BA_DB_NAME = ba_core.BA_DB_NAME + "_test"
+
+	ba_core.BA_MOHAWK_ENABLED = 1
 	ba_core.BA_MOHAWK_SENDERS = { 
 		'testing_entry': {
 				'id':		'testing_entry',
@@ -2013,8 +2212,12 @@ if __name__ == '__main__':
 		}
 	}
 
+
+	ba_core.ORIG_CONFIG_BA_DB_NAME = ba_core.BA_DB_NAME
+	ba_core.ORIG_CONFIG_BA_MOHAWK_ENABLED = ba_core.BA_MOHAWK_ENABLED
+	ba_core.ORIG_CONFIG_BA_MOHAWK_SENDERS = ba_core.BA_MOHAWK_SENDERS
+
 	unittest.ba_db_connect_tested = False
 	
-#	unittest.ba_db_connect_tested = True # FIXME
 	unittest.main()
 
