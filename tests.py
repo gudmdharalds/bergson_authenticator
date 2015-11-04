@@ -2189,7 +2189,6 @@ class TestHttpHandlers(unittest.TestCase):
 		self.__cleanup()
 
 
-	# FIXME: Try removing the code that is the crux of it
 	### Password change 
 
 	def test_ba_handler_user_passwordchange_no_sig(self):
@@ -2230,7 +2229,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT',
-			'someuser', 'somepass')
+			'otheruser', 'someotherpass')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
@@ -2291,7 +2290,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
-			'someuser', 'somepassword15')
+			'someuser', 'somepassword15abc')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
@@ -2316,7 +2315,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
-			"someusername---", 'atleastpassword')
+			"someusername---", 'atleastpasswordB')
 
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -2430,7 +2429,6 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
 		self.__cleanup()
-
 
 	def test_ba_handler_user_passwordchange_db_comm_error(self):
 		"""
@@ -2781,7 +2779,7 @@ class TestHttpHandlers(unittest.TestCase):
 		should succeed.
 		"""
 
-#		self.assertTrue(unittest.ba_db_connect_tested)
+		self.assertTrue(unittest.ba_db_connect_tested)
 
 		self.__init_test()
 		self.__user_create('someuser1', 'otherPassWorddd')
@@ -2994,7 +2992,6 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		self.__cleanup()
-
 
 
 	def test_ba_handler_user_disable_username_not_ok(self):
