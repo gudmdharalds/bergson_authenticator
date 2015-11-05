@@ -208,6 +208,26 @@ import wsgi_init
 application = wsgi_init.ba_wsgi_init
 ```
 
+Also, Apache must be configured to pass on the HTTP Authorization header. An example Apache configuration file might look like this:
+
+```
+<pre>
+<VirtualHost myhost:80>
+        DocumentRoot "/var/www/mypythonstuff/"
+        ServerName myhost
+
+        WSGIScriptAlias / /var/www/mypythonstuff/index.wsgi
+        WSGIPassAuthorization On
+
+        <Directory "/var/www/mypythonstuff/">
+                Options Indexes FollowSymLinks
+                AllowOverride all
+                Require all granted
+        </Directory>
+</VirtualHost>
+</pre>
+```
+
 Otherwise, the instructions referred to above should work.
 
 To install the database-tables, it is recommended to run the application in standalone-mode with the --init argument (see above).
