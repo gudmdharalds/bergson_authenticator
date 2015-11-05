@@ -186,7 +186,7 @@ WSGI is prefered in production environments by most users for python-application
 
 To setup in a Apache-WSGI environment, see [this post](http://thecodeship.com/deployment/deploy-django-apache-virtualenv-and-mod_wsgi/) for instance. Modification has to be done, though, and that centers on the index.wsgi file used. Below is an example file that can be used:
 
-```
+```python
 import os
 import sys
 import site
@@ -209,4 +209,21 @@ application = wsgi_init.ba_wsgi_init
 Otherwise, the instructions referred to above should work.
 
 To install the database-tables, it is recommended to run the application in standalone-mode with the --init argument (see above).
+
+# Tests
+
+This project comes with a through unit-testing suite. This includes 
+testing the API calls, all functions outside the API, and data-integrity
+checks of all operations.
+
+To run the test:
+
+```
+
+python tests.py -v 
+
+```
+
+Note that Mohawk has to be configured for this to work, and you must have the database-connection correctly set up. In addition, the user must have access to a database that bears the same name as the configured database, but with the suffix '_test'.
+
 
