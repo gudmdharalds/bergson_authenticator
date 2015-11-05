@@ -6,6 +6,7 @@ import hashlib
 import json
 import pprint
 import os
+import mohawk
 import MySQLdb
 import random
 import re
@@ -15,9 +16,6 @@ import wsgiref.simple_server as wsgi_simple_server
 
 # Import config-file
 from config import *
-
-if (BA_MOHAWK_ENABLED == 1):
-	import mohawk
 
 
 class BAPathDispatcher:
@@ -466,7 +464,7 @@ def ba_signature(db_conn, http_environ, data):
 	# accidentally turning off verification.
 
 	elif (BA_MOHAWK_ENABLED == 0):
-		assert (http_environ.has_key('HTTP_AUTHORIZATION') == False)
+		assert (http_environ.has_key('HTTP_AUTHORIZATION') != True)
 
 		return None
 
