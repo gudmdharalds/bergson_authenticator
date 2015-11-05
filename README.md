@@ -1,30 +1,32 @@
 # Bergson Authenticator
 
-This is a webservice intended to serve as a standalone backend for authentication. It is mostly useful in those cases where another service handles granting and enforcement of authorization, but does not implement password-storage and management thereof. 
+This is a microservice intended to serve as a standalone backend for authentication only. This entails that the microservice is only able to create accounts with specific usernames and passwords, but does not store any meta-data about the account (e.g. name of account holder). It does allow for resetting of passwords, and enabling and disabling of accounts. 
 
-The webservice uses MySQL as database source. Database engine can be changed be supplying a different connector.
+The microservice is mostly useful in those cases where another service handles granting and enforcement of authorization, but does not implement account-storage and management thereof. 
+
+The microservice uses MySQL as database source. Database engine can be changed be supplying a different connector, although some SQL queries might need a rewrite.
 
 It allows for:
 - creation of users, with specific passwords
-- passwords are hashed with a randomly generated salt
-- check if a given username matches existing user 
-- disabling and enabling users 
-- changing password of user
-- optionally uses [Mohawk](https://github.com/kumar303/mohawk/) to validate requested data, assuring that only holders of a secret-key can use the webservice. Note that this is not equal to encryption.
+- passwords hashed with a randomly generated salt
+- check if a given username matches existing account 
+- disabling and enabling accounts
+- changing password of accounts
+- optionally uses [Mohawk](https://github.com/kumar303/mohawk/) to validate requested data, assuring that only holders of a secret-key can use the webservice. Note that this does not equal encryption.
 
 Note: If Mohawk is disabled, but clients still issue Authorization-headers, the webservice will return with an error. This is to catch those accidental cases where verification is silently turned off. 
 
 ## API calls
 
-The webservice is RESTful, supports HTTP OPTIONS for all paths, and allows the following calls to be made:
+The microservice is implements a RESTful HTTP protocol, supports HTTP OPTIONS for all paths, and allows the following calls to be made:
 
-- /v1/create (POST): Create a new user that will be enabled.
+- /v1/account/create (POST): Create a new user that will be enabled.
 
 
 ``` 
 
 For instance, one might use cURL to send a request, like this:
-$ curl -i  -X POST -H 'Authorization: Hawk ... ' -H 'application/json' -d '{"username":"myusername", "password":"999"}' http://server:port/v1/create 
+$ curl -i  -X POST -H 'Authorization: Hawk ... ' -H 'application/json' -d '{"username":"myusername", "password":"999"}' http://server:port/v1/account/create 
 
 And the server would respond like this:
 
@@ -37,7 +39,7 @@ Content-type: application/json
 
 Upon failure (Authorization-header skipped from now on):
 
-$ curl -i  -X POST -H 'application/json' -d '{"username":"myusername", "password":"999"}' http://server:port/v1/create ; echo ""
+$ curl -i  -X POST -H 'application/json' -d '{"username":"myusername", "password":"999"}' http://server:port/v1/account/create ; echo ""
 HTTP/1.0 422 Error
 Date: Wed, 21 Oct 2015 00:29:46 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -47,13 +49,13 @@ Content-type: application/json
 
 ```
 
-- /v1/authenticate (POST): Try to authenticate user
+- /v1/account/authenticate (POST): Try to authenticate 
 
 ``` 
 
 For example:
 
-$ curl -i  -X POST -H 'application/json' -d '{"username":"myusername", "password":"999"}' http://server:port/v1/authenticate 
+$ curl -i  -X POST -H 'application/json' -d '{"username":"myusername", "password":"999"}' http://server:port/v1/account/authenticate 
 
 HTTP/1.0 200 OK
 Date: Wed, 21 Oct 2015 00:28:35 GMT
@@ -64,7 +66,7 @@ Content-type: application/json
 
 And upon failure:
 
-$ curl -i  -X POST -H 'application/json' -d '{"username":"myusername", "password":"112"}' http://server:port/v1/authenticate 
+$ curl -i  -X POST -H 'application/json' -d '{"username":"myusername", "password":"112"}' http://server:port/v1/account/authenticate 
 HTTP/1.0 403 Error
 Date: Wed, 21 Oct 2015 00:30:23 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -74,13 +76,13 @@ Content-type: application/json
 
 ```
 
-- /v1/exists (GET) Check if username exists already
+- /v1/account/exists (GET) Check if account exists already with specified username
 
 ```
 
 For example:
 
-$ curl -i  -X GET -H 'application/json' -d '{"username":"myusername"}' http://server:port/v1/exists 
+$ curl -i  -X GET -H 'application/json' -d '{"username":"myusername"}' http://server:port/v1/account/exists 
 HTTP/1.0 200 OK
 Date: Wed, 21 Oct 2015 00:33:24 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -90,7 +92,7 @@ Content-type: application/json
 
 And upon failure:
 
-$ curl -i  -X GET -H 'application/json' -d '{"username":"myusername2"}' http://server:port/v1/exists 
+$ curl -i  -X GET -H 'application/json' -d '{"username":"myusername2"}' http://server:port/v1/account/exists 
 HTTP/1.0 404 Error
 Date: Wed, 21 Oct 2015 00:33:32 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -100,13 +102,13 @@ Content-type: application/json
 
 ```
 
-- /v1/passwordchange (PUT): Change user's password 
+- /v1/account/passwordchange (PUT): Change account password 
 
 ```
 
 For example:
 
-$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername", "password": "000"}' http://server:port/v1/passwordchange ; echo ""
+$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername", "password": "000"}' http://server:port/v1/account/passwordchange ; echo ""
 HTTP/1.0 200 OK
 Date: Wed, 21 Oct 2015 00:35:26 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -116,7 +118,7 @@ Content-type: application/json
 
 And upon failure:
 
-$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername", "password": "000æ"}' http://server:port/v1/passwordchange ; echo ""
+$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername", "password": "000æ"}' http://server:port/v1/account/passwordchange ; echo ""
 HTTP/1.0 406 Error
 Date: Wed, 21 Oct 2015 00:35:51 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -126,13 +128,13 @@ Content-type: application/json
 
 ```
 
-- /v1/disable (PUT): Disable user
+- /v1/account/disable (PUT): Disable account 
 
 ```
 
 For example:
 
-$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername"}' http://server:port/v1/disable ; echo ""
+$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername"}' http://server:port/v1/account/disable ; echo ""
 HTTP/1.0 200 OK
 Date: Wed, 21 Oct 2015 00:36:16 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -142,7 +144,7 @@ Content-type: application/json
 
 And upon failure:
 
-$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername2"}' http://server:port/v1/disable ; echo ""
+$ curl -i  -X PUT -H 'application/json' -d '{"username":"myusername2"}' http://server:port/v1/account/disable ; echo ""
 HTTP/1.0 404 Error
 Date: Wed, 21 Oct 2015 00:36:33 GMT
 Server: WSGIServer/0.1 Python/2.7.5
@@ -152,7 +154,7 @@ Content-type: application/json
 
 ```
 
-- /v1/enable (PUT): Enable user (identical to /disable in usage)
+- /v1/account/enable (PUT): Enable account (identical to /disable in usage)
 
 ## Installation
 
@@ -192,7 +194,7 @@ import sys
 import site
 
 # Add the site-packages of the chosen virtualenv to work with
-site.addsitedir('my-path-to-installation/python-libs/lib/python2.7/site-packages')
+site.addsitedir('my-path-to-installation/python-libs/lib/python2.7/')
 
 # Add the app's directory to the PYTHONPATH
 sys.path.append('my-path-to-installation/code') # Here the code to the authenticator should live
@@ -212,11 +214,9 @@ To install the database-tables, it is recommended to run the application in stan
 
 # Tests
 
-This project comes with a through unit-testing suite. This includes 
-testing the API calls, all functions outside the API, and data-integrity
-checks of all operations.
+This project comes with a through unit-testing suite. This includes  testing the API calls, all functions outside the API, and data-integrity checks of all operations.
 
-To run the test:
+To run the test-suite, first set up Bergson as advised above, then run:
 
 ```
 
@@ -224,6 +224,6 @@ python tests.py -v
 
 ```
 
-Note that Mohawk has to be configured for this to work, and you must have the database-connection correctly set up. In addition, the user must have access to a database that bears the same name as the configured database, but with the suffix '_test'.
+Note that Mohawk has to be installed for this to work, and you must have the database-connection correctly set up. In addition, the user must have full access (i.e. DROP, CREATE, SELECT, INSERT, UPDATE) to a database that bears the same name as the configured database, but with the '_test' suffix.
 
 

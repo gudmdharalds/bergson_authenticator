@@ -210,28 +210,28 @@ def ba_db_create_tables():
 	db_conn = ba_db_connect()
 
 	#
-	# Check if users table exists, and if not, create.
+	# Check if accounts table exists, and if not, create.
 	#
 
 	db_cursor = db_conn.cursor()
-	db_cursor.execute("SHOW TABLE STATUS LIKE '%users%'")
+	db_cursor.execute("SHOW TABLE STATUS LIKE '%accounts%'")
 	db_table_status = db_cursor.fetchall()
 
-	table_create_users = 0
+	table_create_accounts = 0
 
 	try:
-		if (db_table_status[0][0] == 'users'):
-			table_create_users = 0
+		if (db_table_status[0][0] == 'accounts'):
+			table_create_accounts = 0
 
 	except IndexError:
-		table_create_users = 1
+		table_create_accounts = 1
 
 	db_cursor.close()
 
 
-	if (table_create_users == 1):
+	if (table_create_accounts == 1):
 		db_cursor = db_conn.cursor()
-		db_cursor.execute("CREATE TABLE `users` ( 				\
+		db_cursor.execute("CREATE TABLE `accounts` ( 				\
 					  `id` bigint(20) NOT NULL AUTO_INCREMENT, 	\
 					  `enabled` int(11) NOT NULL DEFAULT '0', 	\
 					  `username` varchar(128) NOT NULL, 		\
@@ -564,7 +564,7 @@ def ba_handler_authenticate(http_environ, start_response, args_extra):
 		# Do not change the order of the fields
 		# as this will break the code below where
 		# they are referenced.
-		db_cursor.execute('SELECT username, password_hashed, salt FROM users WHERE username = %s AND enabled = 1', [req_username])
+		db_cursor.execute('SELECT username, password_hashed, salt FROM accounts WHERE username = %s AND enabled = 1', [req_username])
 
 	except:
 		# Inform about DB error
@@ -576,7 +576,7 @@ def ba_handler_authenticate(http_environ, start_response, args_extra):
 	#
 
 	try:
-		db_user_info = db_cursor.fetchmany(1)
+		db_account_info = db_cursor.fetchmany(1)
 
 		# Clean up DB stuff
 		db_cursor.close()
@@ -590,15 +590,15 @@ def ba_handler_authenticate(http_environ, start_response, args_extra):
 	# figure out what to respond with
 	#
 
-	if (len(db_user_info) == 1):
+	if (len(db_account_info) == 1):
 		#
 		# Check if given password,
 		# do match the password originally
 		# hashed and saved in the database
-		# (and is associated with this user).
+		# (and is associated with this account).
 		#
 
-		auth_ok = ba_req_input_password_verify(req_password, db_user_info[0][1], db_user_info[0][2])
+		auth_ok = ba_req_input_password_verify(req_password, db_account_info[0][1], db_account_info[0][2])
 
 		if (auth_ok == True):
 			# Matches hash, return 200 and JSON-string indicated 
@@ -609,9 +609,9 @@ def ba_handler_authenticate(http_environ, start_response, args_extra):
 	return ba_http_resp_json(mohawk_sig_res, start_response, 403, None, { 'error': 'Access denied' })
 
 			
-def ba_handler_user_create(http_environ, start_response, args_extra):
+def ba_handler_account_create(http_environ, start_response, args_extra):
 	"""
-	Create user, given username and password from JSON request.
+	Create account, given username and password from JSON request.
 	Will do various checks of username and password, and hash 
 	password.
 	"""
@@ -664,24 +664,24 @@ def ba_handler_user_create(http_environ, start_response, args_extra):
 
 
 	#
-	# New see if user already exists 
+	# New see if account already exists with that username
 	# in DB. Do not use enabled parameter,
 	# as usernames should be unique.
 	#
 
 	try:
 		db_cursor = db_conn.cursor()
-		db_cursor.execute('SELECT username, password_hashed, salt FROM users WHERE username = %s', [req_username])
+		db_cursor.execute('SELECT username, password_hashed, salt FROM accounts WHERE username = %s', [req_username])
 
-		db_user_info = db_cursor.fetchmany(1)
+		db_account_info = db_cursor.fetchmany(1)
 
 		db_cursor.close()
 
 	except:
 		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
-	# Check if user already exists
-	if (len(db_user_info) != 0):
+	# Check if account already exists
+	if (len(db_account_info) != 0):
 		return ba_http_resp_json(mohawk_sig_res, start_response, 422, None, { 'error': 'Username exists' })
 
 	# Now create random salt, and create
@@ -695,7 +695,7 @@ def ba_handler_user_create(http_environ, start_response, args_extra):
 
 	try:
 		db_cursor = db_conn.cursor()
-		db_cursor.execute('INSERT INTO users (enabled, username, password_hashed, salt, \
+		db_cursor.execute('INSERT INTO accounts (enabled, username, password_hashed, salt, \
 			 created_at) VALUES (1, %s, %s, %s, %s)', [ req_username, req_password_hashed, rand_salt, int(time.time()) ])
 
 		db_cursor.close()
@@ -709,9 +709,9 @@ def ba_handler_user_create(http_environ, start_response, args_extra):
 	return ba_http_resp_json(mohawk_sig_res, start_response, 200, None, { 'status': 1, 'username': req_username })
 
 
-def ba_handler_user_exists(http_environ, start_response, args_extra):
+def ba_handler_account_exists(http_environ, start_response, args_extra):
 	"""
-	Check if user exists, given username in JSON request.
+	Check if accounts exists, given username in JSON request.
 	"""
 
 	params = http_environ['params']
@@ -753,33 +753,34 @@ def ba_handler_user_exists(http_environ, start_response, args_extra):
 		return ba_http_resp_json(mohawk_sig_res, start_response, 406, None, { 'error': 'Username is not acceptable' })
 
 	#
-	# New see if user already exists 
+	# New see if account already exists 
 	# in DB. Do not consider the enabled
 	# field.
 	#
 
 	try:
 		db_cursor = db_conn.cursor()
-		db_cursor.execute('SELECT username, password_hashed, salt FROM users WHERE username = %s', [req_username])
+		db_cursor.execute('SELECT username, password_hashed, salt FROM accounts WHERE username = %s', [req_username])
 
-		db_user_info = db_cursor.fetchmany(1)
+		db_account_info = db_cursor.fetchmany(1)
 
 		db_cursor.close()
 	
 	except:
 		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
-	# Check if user already exists
-	if (len(db_user_info) == 1):
+
+	# Check if account already exists
+	if (len(db_account_info) == 1):
 		return ba_http_resp_json(mohawk_sig_res, start_response, 200, None, { 'status': 1, 'message': 'Username exists' })
 	
 	else:
 		return ba_http_resp_json(mohawk_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
 
 
-def ba_handler_user_passwordchange(http_environ, start_response, args_extra):
+def ba_handler_account_passwordchange(http_environ, start_response, args_extra):
 	"""
-	Change password for user, given JSON data.
+	Change password for account, given JSON data.
 	"""
 
 	params = http_environ['params']
@@ -833,28 +834,29 @@ def ba_handler_user_passwordchange(http_environ, start_response, args_extra):
 
 
 	#
-	# New see if user exists 
+	# New see if account exists 
 	# in DB. 
 	#
 
 	try:
 		db_cursor = db_conn.cursor()
-		db_cursor.execute('SELECT username, password_hashed, salt FROM users WHERE username = %s', [req_username])
+		db_cursor.execute('SELECT username, password_hashed, salt FROM accounts WHERE username = %s', [req_username])
 
-		db_user_info = db_cursor.fetchmany(1)
+		db_account_info = db_cursor.fetchmany(1)
 
 		db_cursor.close()
 	
 	except:
 		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
-	# Check if user already exists
-	if (len(db_user_info) == 0):
+
+	# Check if account already exists
+	if (len(db_account_info) == 0):
 		return ba_http_resp_json(mohawk_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
 
 
 	#
-	# Try to actually change password of user.
+	# Try to actually change password of account.
 	#
 
 	timestamp_now = int(time.time())	
@@ -863,28 +865,28 @@ def ba_handler_user_passwordchange(http_environ, start_response, args_extra):
 
 	try:
 		db_cursor = db_conn.cursor()
-		db_cursor.execute('UPDATE users SET password_hashed = %s, salt = %s, updated_at = %s WHERE username = %s',  [req_password_hashed, rand_salt, timestamp_now, req_username ])
+		db_cursor.execute('UPDATE accounts SET password_hashed = %s, salt = %s, updated_at = %s WHERE username = %s',  [req_password_hashed, rand_salt, timestamp_now, req_username ])
 
 		db_cursor.close()
 		db_conn.commit()
 
 	except:
-		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'User-information could not be updated' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Account-information could not be updated' })
 
 	return ba_http_resp_json(mohawk_sig_res, start_response, 200, None, { 'status': 1, 'message': 'Updated password' })
 
 
-def ba_handler_user_enable(http_environ, start_response, args_extra):
-	""" Enable user. Calls another function to perform the operation. """
-	return ba_handler_user_enable_or_disable(http_environ, start_response, 1, args_extra)
+def ba_handler_account_enable(http_environ, start_response, args_extra):
+	""" Enable account. Calls another function to perform the operation. """
+	return ba_handler_account_enable_or_disable(http_environ, start_response, 1, args_extra)
 
-def ba_handler_user_disable(http_environ, start_response, args_extra):
-	""" Disable user. Calls another function to perform the operation. """
-	return ba_handler_user_enable_or_disable(http_environ, start_response, 0, args_extra)
+def ba_handler_account_disable(http_environ, start_response, args_extra):
+	""" Disable account. Calls another function to perform the operation. """
+	return ba_handler_account_enable_or_disable(http_environ, start_response, 0, args_extra)
 
-def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user, args_extra):
+def ba_handler_account_enable_or_disable(http_environ, start_response, enable_account, args_extra):
 	"""
-	Disable or enable specified user.
+	Disable or enable specified account.
 	"""
 
 	params = http_environ['params']
@@ -927,42 +929,42 @@ def ba_handler_user_enable_or_disable(http_environ, start_response, enable_user,
 
       
 	#
-	# Check if user exists
+	# Check if account exists
 	#
  
 	try:
 		db_cursor = db_conn.cursor()
-		db_cursor.execute('SELECT username FROM users WHERE username = %s', [req_username])
+		db_cursor.execute('SELECT username FROM accounts WHERE username = %s', [req_username])
 
-		db_user_info = db_cursor.fetchmany(1)
+		db_account_info = db_cursor.fetchmany(1)
 
 		db_cursor.close()
 	
 	except:
 		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
-	if (len(db_user_info) != 1):
+	if (len(db_account_info) != 1):
 		return ba_http_resp_json(mohawk_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
 
 	#
-	# Ok, user exists, then enable or disable user
+	# Ok, account exists, then enable or disable it 
 	#
 
 	timestamp_now = int(time.time())
 
 	try:
 		db_cursor = db_conn.cursor()
-		db_cursor.execute('UPDATE users SET enabled = %s, updated_at = %s  WHERE username = %s',  [enable_user, timestamp_now, req_username ])
+		db_cursor.execute('UPDATE accounts SET enabled = %s, updated_at = %s  WHERE username = %s',  [enable_account, timestamp_now, req_username ])
 		db_cursor.close()
 
 		db_conn.commit()
 
 	except:
-		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'User-information could not be updated' })
+		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Account-information could not be updated' })
 
-	return ba_http_resp_json(mohawk_sig_res, start_response, 200, None, {'status': 1, 'message': 'User ' + ('enabled' if enable_user == 1 else 'disabled') })
+	return ba_http_resp_json(mohawk_sig_res, start_response, 200, None, {'status': 1, 'message': 'Account ' + ('enabled' if enable_account == 1 else 'disabled') })
 
-def ba_handler_health(http_environ, start_response, args_extra):
+def ba_handler_service_health(http_environ, start_response, args_extra):
 	"""
 	Handle requests for health-related information.
 	This function will try to connect to DB, and issue
@@ -975,7 +977,7 @@ def ba_handler_health(http_environ, start_response, args_extra):
 		db_conn = ba_db_connect()
 
 		db_cursor = db_conn.cursor()
-		db_cursor.execute("SHOW CREATE TABLE users")
+		db_cursor.execute("SHOW CREATE TABLE accounts")
 		db_tableinfo = db_cursor.fetchall()
 
 		if (len(db_tableinfo) == 0):
@@ -997,28 +999,26 @@ def ba_handler_options(http_environ, start_response, url_methods_supported):
 def ba_dispatcher_init():
 	dispatcher = BAPathDispatcher()
 
-	# FIXME: /v1/user/ ... 
+	dispatcher.register('POST', '/v1/account/create', ba_handler_account_create)
+	dispatcher.register('OPTIONS', '/v1/account/create', ba_handler_options, 'POST,OPTIONS')
 
-	dispatcher.register('POST', '/v1/create', ba_handler_user_create)
-	dispatcher.register('OPTIONS', '/v1/create', ba_handler_options, 'POST,OPTIONS')
+	dispatcher.register('PUT', '/v1/account/passwordchange', ba_handler_account_passwordchange)
+	dispatcher.register('OPTIONS', '/v1/account/passwordchange', ba_handler_options, 'PUT,OPTIONS')
 
-	dispatcher.register('PUT', '/v1/passwordchange', ba_handler_user_passwordchange)
-	dispatcher.register('OPTIONS', '/v1/passwordchange', ba_handler_options, 'PUT,OPTIONS')
+	dispatcher.register('POST', '/v1/account/authenticate', ba_handler_authenticate)
+	dispatcher.register('OPTIONS', '/v1/account/authenticate', ba_handler_options, 'POST,OPTIONS')
 
-	dispatcher.register('POST', '/v1/authenticate', ba_handler_authenticate)
-	dispatcher.register('OPTIONS', '/v1/authenticate', ba_handler_options, 'POST,OPTIONS')
+	dispatcher.register('GET', '/v1/account/exists', ba_handler_account_exists)
+	dispatcher.register('OPTIONS', '/v1/account/exists', ba_handler_options, 'GET,OPTIONS')
 
-	dispatcher.register('GET', '/v1/exists', ba_handler_user_exists)
-	dispatcher.register('OPTIONS', '/v1/exists', ba_handler_options, 'GET,OPTIONS')
+	dispatcher.register('PUT', '/v1/account/disable', ba_handler_account_disable)
+	dispatcher.register('OPTIONS', '/v1/account/disable', ba_handler_options, 'PUT,OPTIONS')
 
-	dispatcher.register('PUT', '/v1/disable', ba_handler_user_disable)
-	dispatcher.register('OPTIONS', '/v1/disable', ba_handler_options, 'PUT,OPTIONS')
+	dispatcher.register('PUT', '/v1/account/enable', ba_handler_account_enable)
+	dispatcher.register('OPTIONS', '/v1/account/enable', ba_handler_options, 'PUT,OPTIONS')
 
-	dispatcher.register('PUT', '/v1/enable', ba_handler_user_enable)
-	dispatcher.register('OPTIONS', '/v1/enable', ba_handler_options, 'PUT,OPTIONS')
-
-	dispatcher.register('GET', '/v1/health', ba_handler_health)
-	dispatcher.register('OPTIONS', '/v1/health', ba_handler_options, 'GET,OPTIONS')
+	dispatcher.register('GET', '/v1/service/health', ba_handler_service_health)
+	dispatcher.register('OPTIONS', '/v1/service/health', ba_handler_options, 'GET,OPTIONS')
 
 	return dispatcher
 

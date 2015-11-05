@@ -148,17 +148,17 @@ class TestPathDispatcher(unittest.TestCase):
 	def test_register(self):
 		path_dispatcher = ba_core.BAPathDispatcher()
 
-		path_dispatcher.register('PUT', '/v1/path1', dummy_call_func1, [ 'somestring1' ])
-		path_dispatcher.register('GET', '/v1/path1', dummy_call_func2, [ 'somestring2' ])
-		path_dispatcher.register('GET', '/v1/path2', dummy_call_func2, [ 'somestring3' ])
+		path_dispatcher.register('PUT', '/v1/account/path1', dummy_call_func1, [ 'somestring1' ])
+		path_dispatcher.register('GET', '/v1/account/path1', dummy_call_func2, [ 'somestring2' ])
+		path_dispatcher.register('GET', '/v1/account/path2', dummy_call_func2, [ 'somestring3' ])
 
 		self.assertEqual(path_dispatcher.pathmap, 
 			{
-				('put', '/v1/path1'): { 'handler': dummy_call_func1, 
+				('put', '/v1/account/path1'): { 'handler': dummy_call_func1, 
 						'args_extra' : [ 'somestring1' ] },
-				('get', '/v1/path1'): { 'handler': dummy_call_func2, 
+				('get', '/v1/account/path1'): { 'handler': dummy_call_func2, 
 						'args_extra' : [ 'somestring2' ] },
-				('get', '/v1/path2'): { 'handler': dummy_call_func2, 
+				('get', '/v1/account/path2'): { 'handler': dummy_call_func2, 
 						'args_extra' : [ 'somestring3' ] }
 			}
 		)
@@ -186,7 +186,7 @@ class TestPathDispatcher(unittest.TestCase):
 			'HTTP_ACCEPT': '*/*',
 			'HTTP_HOST': '127.0.0.1:8080',
 			'HTTP_USER_AGENT': 'curl/7.29.0',
-			'PATH_INFO': '/v1/create',
+			'PATH_INFO': '/v1/account/create',
 			'QUERY_STRING': '',
 			'REMOTE_ADDR': '127.0.0.1',
 			'REMOTE_HOST': 'localhost.localdomain',
@@ -207,8 +207,8 @@ class TestPathDispatcher(unittest.TestCase):
 		}
 
 		path_dispatcher = ba_core.BAPathDispatcher()
-		path_dispatcher.register('POST', '/v1/create', self.__test_call_json_handler_main, None)
-		path_dispatcher.register('POST', '/v1/create_not_called', self.__test_call_json_handler_second, None)
+		path_dispatcher.register('POST', '/v1/account/create', self.__test_call_json_handler_main, None)
+		path_dispatcher.register('POST', '/v1/account/create_not_called', self.__test_call_json_handler_second, None)
 		path_dispatcher.__call__(http_headers, self.__test_call_json_handler_main)
 
 		#
@@ -271,7 +271,7 @@ class TestPathDispatcher(unittest.TestCase):
 			'HTTP_ACCEPT': '*/*',
 			'HTTP_HOST': '127.0.0.1:8080',
 			'HTTP_USER_AGENT': 'curl/7.29.0',
-			'PATH_INFO': '/v1/create',
+			'PATH_INFO': '/v1/account/create',
 			'QUERY_STRING': 'username=myotheruser&password=myotherpass',
 			'REMOTE_ADDR': '127.0.0.1',
 			'REMOTE_HOST': 'localhost.localdomain',
@@ -292,8 +292,8 @@ class TestPathDispatcher(unittest.TestCase):
 		}
 
 		path_dispatcher = ba_core.BAPathDispatcher()
-		path_dispatcher.register('GET', '/v1/create', self.__test_call_text_plain_handler_main, None)
-		path_dispatcher.register('GET', '/v1/create_not_called', self.__test_call_text_plain_handler_second, None)
+		path_dispatcher.register('GET', '/v1/account/create', self.__test_call_text_plain_handler_main, None)
+		path_dispatcher.register('GET', '/v1/account/create_not_called', self.__test_call_text_plain_handler_second, None)
 		path_dispatcher.__call__(http_headers, self.__test_call_text_plain_handler_main)
 
 		#
@@ -362,7 +362,7 @@ class TestPathDispatcher(unittest.TestCase):
 			'HTTP_ACCEPT': '*/*',
 			'HTTP_HOST': '127.0.0.1:8080',
 			'HTTP_USER_AGENT': 'curl/7.29.0',
-			'PATH_INFO': '/v1/create',
+			'PATH_INFO': '/v1/account/create',
 			'QUERY_STRING': '',
 			'REMOTE_ADDR': '127.0.0.1',
 			'REMOTE_HOST': 'localhost.localdomain',
@@ -385,8 +385,8 @@ class TestPathDispatcher(unittest.TestCase):
 		http_server_emulator_instance = http_server_emulator()
 
 		path_dispatcher = ba_core.BAPathDispatcher()
-		path_dispatcher.register('POST', '/v1/create', self.__test_call_form_urlencoded_handler_main, None)
-		path_dispatcher.register('POST', '/v1/create_not_called', self.__test_call_form_urlencoded_handler_second, None)
+		path_dispatcher.register('POST', '/v1/account/create', self.__test_call_form_urlencoded_handler_main, None)
+		path_dispatcher.register('POST', '/v1/account/create_not_called', self.__test_call_form_urlencoded_handler_second, None)
 		path_dispatcher.__call__(http_headers, http_server_emulator_instance)
 
 		#
@@ -455,7 +455,7 @@ class TestPathDispatcher(unittest.TestCase):
 			'HTTP_ACCEPT': '*/*',
 			'HTTP_HOST': '127.0.0.1:8080',
 			'HTTP_USER_AGENT': 'curl/7.29.0',
-			'PATH_INFO': '/v1/create',
+			'PATH_INFO': '/v1/account/create',
 			'QUERY_STRING': 'username=myotheruser&password=myotherpass',
 			'REMOTE_ADDR': '127.0.0.1',
 			'REMOTE_HOST': 'localhost.localdomain',
@@ -478,8 +478,8 @@ class TestPathDispatcher(unittest.TestCase):
 		http_server_emulator_instance = http_server_emulator()
 
 		path_dispatcher = ba_core.BAPathDispatcher()
-		path_dispatcher.register('GET', '/v1/create', self.__test_call_404_handler_main, None)
-		path_dispatcher.register('GET', '/v1/create_not_called', self.__test_call_404_handler_second, None)
+		path_dispatcher.register('GET', '/v1/account/create', self.__test_call_404_handler_main, None)
+		path_dispatcher.register('GET', '/v1/account/create_not_called', self.__test_call_404_handler_second, None)
 		path_dispatcher.__call__(http_headers, http_server_emulator_instance)
 
 
@@ -520,8 +520,6 @@ class TestPathDispatcher(unittest.TestCase):
 
 
 class TestHttpRespMethods(unittest.TestCase):
-	# FIXME: No mohawk tests
-
 	def test_ba_http_resp_404(self):
 		http_server_emulator_instance = http_server_emulator()
 		http_resp_body = ba_core.ba_http_resp_404(None, http_server_emulator_instance, None)
@@ -686,17 +684,17 @@ class TestDBRoutines(unittest.TestCase):
 		ba_core.ba_db_create_tables()
 
 		db_cursor = db_conn.cursor()
-		db_cursor.execute("DESC users")
+		db_cursor.execute("DESC accounts")
 
-		db_table_info_users = db_cursor.fetchall()
+		db_table_info_accounts = db_cursor.fetchall()
 
-		self.assertEqual(db_table_info_users[0], ('id', 'bigint(20)', 'NO', 'PRI', None, 'auto_increment'))
-		self.assertEqual(db_table_info_users[1], ('enabled', 'int(11)', 'NO', '', '0', ''))
-		self.assertEqual(db_table_info_users[2], ('username', 'varchar(128)', 'NO', 'UNI', None, ''))
-		self.assertEqual(db_table_info_users[3], ('password_hashed', 'varchar(256)', 'NO', '', None, ''))
-		self.assertEqual(db_table_info_users[4], ('salt', 'varchar(128)', 'NO', '', None, ''))
-		self.assertEqual(db_table_info_users[5], ('created_at', 'bigint(20)', 'NO', '', None, ''))
-		self.assertEqual(db_table_info_users[6], ('updated_at', 'bigint(20)', 'YES', '', None, ''))
+		self.assertEqual(db_table_info_accounts[0], ('id', 'bigint(20)', 'NO', 'PRI', None, 'auto_increment'))
+		self.assertEqual(db_table_info_accounts[1], ('enabled', 'int(11)', 'NO', '', '0', ''))
+		self.assertEqual(db_table_info_accounts[2], ('username', 'varchar(128)', 'NO', 'UNI', None, ''))
+		self.assertEqual(db_table_info_accounts[3], ('password_hashed', 'varchar(256)', 'NO', '', None, ''))
+		self.assertEqual(db_table_info_accounts[4], ('salt', 'varchar(128)', 'NO', '', None, ''))
+		self.assertEqual(db_table_info_accounts[5], ('created_at', 'bigint(20)', 'NO', '', None, ''))
+		self.assertEqual(db_table_info_accounts[6], ('updated_at', 'bigint(20)', 'YES', '', None, ''))
 
 
 		db_cursor = db_conn.cursor()
@@ -709,7 +707,7 @@ class TestDBRoutines(unittest.TestCase):
 		self.assertEqual(db_table_info_nonce[2], ('timestamp', 'bigint(20)', 'NO', '', None, ''))
 
 		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE users")
+		db_cursor.execute("DROP TABLE accounts")
 
 		db_cursor = db_conn.cursor()
 		db_cursor.execute("DROP TABLE nonce")
@@ -795,7 +793,7 @@ class TestMowhak(unittest.TestCase):
 
 			req_method = 'POST'
 			req_host = '127.0.0.1:8080'
-			req_path = '/v1/create'
+			req_path = '/v1/account/create'
 			req_extra_headers = None
 			req_data_orig = { 'username' : 'myuser', 'password': 'mypass' }
 			req_data_mohawk_test = "username=" + req_data_orig["username"] + "&" + "password=" + req_data_orig["password"]
@@ -826,7 +824,7 @@ class TestMowhak(unittest.TestCase):
 
                 
 		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE users")
+		db_cursor.execute("DROP TABLE accounts")
                 
 		db_cursor = db_conn.cursor()
 		db_cursor.execute("DROP TABLE nonce")
@@ -855,7 +853,7 @@ class TestMowhak(unittest.TestCase):
 
 			req_method = 'POST'
 			req_host = '127.0.0.1:8080'
-			req_path = '/v1/create'
+			req_path = '/v1/account/create'
 			req_extra_headers = None
 			req_data_orig = { 'username' : 'myuser', 'password': 'mypass' }
 			req_data_mohawk_test = "username=" + req_data_orig["username"] + "&" + "password=" + req_data_orig["password"]
@@ -885,9 +883,10 @@ class TestMowhak(unittest.TestCase):
 				# fails. We do not have to.
 				ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
 
-                
+
+		# FIXME: Move into setUp and tearDown                
 		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE users")
+		db_cursor.execute("DROP TABLE accounts")
                 
 		db_cursor = db_conn.cursor()
 		db_cursor.execute("DROP TABLE nonce")
@@ -916,7 +915,7 @@ class TestMowhak(unittest.TestCase):
 
 			req_method = 'POST'
 			req_host = '127.0.0.1:8080'
-			req_path = '/v1/create'
+			req_path = '/v1/account/create'
 			req_extra_headers = None
 			req_data_orig = { 'username' : 'myuser', 'password': 'mypass' }
 			req_data_mohawk_test = "username=mySOMEUSER&" + "password=mySOMEPASSWORD"
@@ -950,7 +949,7 @@ class TestMowhak(unittest.TestCase):
 
                 
 		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE users")
+		db_cursor.execute("DROP TABLE accounts")
                 
 		db_cursor = db_conn.cursor()
 		db_cursor.execute("DROP TABLE nonce")
@@ -979,7 +978,7 @@ class TestMowhak(unittest.TestCase):
 
 			req_method = 'POST'
 			req_host = '127.0.0.1:8080'
-			req_path = '/v1/create'
+			req_path = '/v1/account/create'
 			req_extra_headers = None
 			req_data_orig = { 'username' : 'myuser', 'password': 'mypass' }
 			req_data_mohawk_test = "username=" + req_data_orig["username"] + "&" + "password=" + req_data_orig["password"]
@@ -1016,7 +1015,7 @@ class TestMowhak(unittest.TestCase):
 
                 
 		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE users")
+		db_cursor.execute("DROP TABLE accounts")
                 
 		db_cursor = db_conn.cursor()
 		db_cursor.execute("DROP TABLE nonce")
@@ -1041,7 +1040,7 @@ class TestMowhak(unittest.TestCase):
 
 			req_method = 'POST'
 			req_host = '127.0.0.1:8080'
-			req_path = '/v1/create'
+			req_path = '/v1/account/create'
 			req_extra_headers = None
 			req_data_orig = { 'username' : 'myuser', 'password': 'mypass' }
 			req_data_mohawk_test = "username=" + req_data_orig["username"] + "&" + "password=" + req_data_orig["password"]
@@ -1068,7 +1067,7 @@ class TestMowhak(unittest.TestCase):
 
                 
 		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE users")
+		db_cursor.execute("DROP TABLE accounts")
                 
 		db_cursor = db_conn.cursor()
 		db_cursor.execute("DROP TABLE nonce")
@@ -1093,7 +1092,7 @@ class TestMowhak(unittest.TestCase):
 
 			req_method = 'POST'
 			req_host = '127.0.0.1:8080'
-			req_path = '/v1/create'
+			req_path = '/v1/account/create'
 			req_extra_headers = None
 			req_data_orig = { 'username' : 'myuser', 'password': 'mypass' }
 			req_data_mohawk_test = "username=" + req_data_orig["username"] + "&" + "password=" + req_data_orig["password"]
@@ -1126,7 +1125,7 @@ class TestMowhak(unittest.TestCase):
 			ba_core.BA_MOHAWK_ENABLED = 1
  
 		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE users")
+		db_cursor.execute("DROP TABLE accounts")
                 
 		db_cursor = db_conn.cursor()
 		db_cursor.execute("DROP TABLE nonce")
@@ -1210,12 +1209,12 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core.ba_db_create_tables()
 
 		#
-		# Create some totally unrelated users
+		# Create some totally unrelated accounts 
 		# that we do not want to be touched
 		#
 
 		for user_cnt in range(0, 5):
-			self.__user_create('unrelateduser' + str(user_cnt), 'unrelated_pass_' + str(user_cnt))
+			self.__account_create('unrelateduser' + str(user_cnt), 'unrelated_pass_' + str(user_cnt))
 
 		self.db_conn = ba_core.ba_db_connect()
 
@@ -1226,7 +1225,7 @@ class TestHttpHandlers(unittest.TestCase):
 		"""
 
 		db_cursor = self.db_conn.cursor()
-		db_cursor.execute("DROP TABLE users")
+		db_cursor.execute("DROP TABLE accounts")
 
 		db_cursor = self.db_conn.cursor()
 		db_cursor.execute("DROP TABLE nonce")
@@ -1237,9 +1236,9 @@ class TestHttpHandlers(unittest.TestCase):
 		self.db_conn = None
 
 
-	def __user_create(self, username, password):
+	def __account_create(self, username, password):
 		"""
-		Create a new user. This is done by
+		Create a new account. This is done by
 		using the API.
 		"""
 
@@ -1249,7 +1248,7 @@ class TestHttpHandlers(unittest.TestCase):
 		http_req = {
 			'method': 'POST',
 			'host': 'localhost',
-			'path': '/v1/create'
+			'path': '/v1/account/create'
 		}
 
 		http_req_params = { 
@@ -1262,14 +1261,14 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_parsed_environ, http_parsed_params) = http_client.request_generate(
 			http_req['method'], http_req['host'], http_req['path'], None, http_req_params)
 
-		ba_core.ba_handler_user_create(http_parsed_environ, http_server, None)
+		ba_core.ba_handler_account_create(http_parsed_environ, http_server, None)
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 
-	def __user_dump_all(self, exclude = None):
+	def __account_dump_all(self, exclude = None):
 		"""
-		Dump users-table from DB. This is mainly
+		Dump accounts-table from DB. This is mainly
 		for data-integrity checks.
 		"""
 
@@ -1277,19 +1276,19 @@ class TestHttpHandlers(unittest.TestCase):
 
 		if (exclude == None):
 			db_cursor.execute("SELECT id, enabled, username, password_hashed, salt, \
-				created_at, updated_at FROM users ORDER BY username")
+				created_at, updated_at FROM accounts ORDER BY username")
 
 		else:
 			db_cursor.execute("SELECT id, enabled, username, password_hashed, salt, \
-				created_at, updated_at FROM users WHERE username != %s ORDER BY username")
+				created_at, updated_at FROM accounts WHERE username != %s ORDER BY username")
 
-		db_users_info = db_cursor.fetchall()
+		db_accounts_info = db_cursor.fetchall()
 
 		db_cursor.close()
 
 		self.db_conn.rollback()
 
-		return db_users_info
+		return db_accounts_info
 
 
 	def __gen_basic_http_req(self, path = None, method = None, username = None, password = None, mohawk_sender_id = None):
@@ -1355,21 +1354,21 @@ class TestHttpHandlers(unittest.TestCase):
 		return (http_server, http_client, http_req, http_req_params, http_parsed_environ, mohawk_sender_sig)
 
 
-	def test_ba_handler_authenticate_user_no_sig(self):
+	def test_ba_handler_authenticate_no_sig(self):
 		"""
-		Create user. Then try to authenticate using correct username & password,
+		Create accounts. Then try to authenticate using correct username & password,
 		but with no HTTP Authoriziation (Hawk) header. Should result in an error.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create("myuser", "mypass")
+		self.__account_create("myuser", "mypass")
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 'myuser', 'mypass')
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 'myuser', 'mypass')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
@@ -1380,11 +1379,11 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_authenticate_user_corrupt_sig(self):
+	def test_ba_handler_authenticate_corrupt_sig(self):
 		"""
 		Create valid user & password. Then try to authenticate with a
 		request that has invalid Hawk header.
@@ -1392,13 +1391,13 @@ class TestHttpHandlers(unittest.TestCase):
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create("myuser", "mypass")
+		self.__account_create("myuser", "mypass")
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 'myuser', 'mypass')
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 'myuser', 'mypass')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
@@ -1416,11 +1415,11 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_authenticate_user_corrupt_username(self):
+	def test_ba_handler_authenticate_corrupt_username(self):
 		"""
 		Create username & password, emulate request, and sign it. Then corrupt
 		the username sent. Should result in an error.
@@ -1428,12 +1427,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__user_create('myusername', 'mypassword')
+		self.__account_create('myusername', 'mypassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'myusername', 'mypassword')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -1445,11 +1444,11 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 		                
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 		
 
-	def test_ba_handler_authenticate_user_corrupt_password(self):
+	def test_ba_handler_authenticate_corrupt_password(self):
 		"""
 		Create username & password, emulate request, and sign it. Then corrupt
 		the password sent. Should result in an error.
@@ -1457,13 +1456,13 @@ class TestHttpHandlers(unittest.TestCase):
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__user_create('myusername', 'mypassword')
+		self.__account_create('myusername', 'mypassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST',
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST',
 			'myusername', 'mypassword')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -1475,43 +1474,43 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_authenticate_user_sig_ok(self):
+	def test_ba_handler_authenticate_sig_ok(self):
 		"""
-		Do not create any user, but try to authenticate with an account
+		Do not create an account, but try to authenticate with an account
 		that does not exist. Should result in a 403 Access Denied error.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
 
-                db_user_state_before = self.__user_dump_all()
+                db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST',
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST',
 			'myusername', 'mypassword')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
-		# Normal error: The user does not exist
+		# Normal error: The account does not exist
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Access denied"}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_authenticate_user_ok(self):
+	def test_ba_handler_authenticate_ok(self):
 		"""
-		Create a series of users. Then try to authenticate against these
-		users, with a valid password, using valid Hawk-signature. Should succeed.
+		Create a series of acccounts. Then try to authenticate against these
+		accounts, with a valid password, using valid Hawk-signature. Should succeed.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
@@ -1523,16 +1522,16 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		for i in range(0, 10):
-			self.__user_create("someuser" + str(i), "otherPassWord")
+			self.__account_create("someuser" + str(i), "otherPassWord")
 
 		# For data-integrity checks
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		for i in range(0, 10):
 			for x in range(0, 5):
 				(http_server, http_client, http_req, http_req_params, http_environ, 
-					mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+					mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 					"someuser" + str(i), "otherPassWord")
 
 				ba_core.BA_MOHAWK_ENABLED = 1
@@ -1543,15 +1542,15 @@ class TestHttpHandlers(unittest.TestCase):
 				self.assertEqual(http_server.getinfo()[0], '200 OK')
 
 
-		db_user_state_after = self.__user_dump_all()
+		db_account_state_after = self.__account_dump_all()
 
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_authenticate_user_ok_sometimes(self):
+	def test_ba_handler_authenticate_ok_sometimes(self):
 		"""
-		Create a series of users. Then try to authenticate against these
-		users, sometimes with a valid password, but using valid Hawk-signature. Should succeed
+		Create a series of accounts. Then try to authenticate against these
+		accounts, sometimes with a valid password, but using valid Hawk-signature. Should succeed
 		when using a valid password, otherwise not.
 		"""
 
@@ -1565,9 +1564,9 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		for i in range(0, 10):
-			self.__user_create("someuser" + str(i), "otherPassWord")
+			self.__account_create("someuser" + str(i), "otherPassWord")
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		for i in range(0, 10):
@@ -1583,7 +1582,7 @@ class TestHttpHandlers(unittest.TestCase):
 					try_login_password += str(x)
 
 				(http_server, http_client, http_req, http_req_params, http_environ, 
-					mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+					mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 					"someuser" + str(i), try_login_password)
 
 				ba_core.BA_MOHAWK_ENABLED = 1
@@ -1600,30 +1599,30 @@ class TestHttpHandlers(unittest.TestCase):
 					self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_authenticate_user_disabled_error(self):
+	def test_ba_handler_authenticate_disabled_error(self):
 		"""
-		Create user, then disable it, and try to authenticate against it,
+		Create account, then disable it, and try to authenticate against it,
 		using valid Hawk header; should result in an error.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create("someuser1", "otherPassWord")
+		self.__account_create("someuser1", "otherPassWord")
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		db_cursor = self.db_conn.cursor()
-		db_cursor.execute("UPDATE users SET enabled = 0 WHERE username = 'someuser1'")
+		db_cursor.execute("UPDATE accounts SET enabled = 0 WHERE username = 'someuser1'")
 		self.db_conn.commit()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			"someuser1", "otherPassWord")
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -1634,31 +1633,31 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		# Restore the user's account to previous state
+		# Restore the account to previous state
 		db_cursor = self.db_conn.cursor()
-		db_cursor.execute("UPDATE users SET enabled = 1 WHERE username = 'someuser1'")
+		db_cursor.execute("UPDATE accounts SET enabled = 1 WHERE username = 'someuser1'")
 		self.db_conn.commit()
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_authenticate_user_username_not_ok(self):
+	def test_ba_handler_authenticate_username_not_ok(self):
 		"""
-		Create user, try to authenticate but using a username that
+		Create account, try to authenticate but using a username that
 		does not exist; should result in a 403 Access denied error.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create("someuser1", "otherPassWord")
+		self.__account_create("someuser1", "otherPassWord")
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			"someuser2", "otherPassWord")
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -1669,25 +1668,25 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_authenticate_user_password_not_ok(self):
+	def test_ba_handler_authenticate_password_not_ok(self):
 		"""
-		Create user, try to authenticate but using a password that
+		Create account, try to authenticate but using a password that
 		is not valid; should result in a 403 Access denied error.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create("someuser1", "otherPassWorddd")
+		self.__account_create("someuser1", "otherPassWorddd")
 
-                db_user_state_before = self.__user_dump_all()
+                db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			"someuser1", "otherPassWord")
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -1698,25 +1697,25 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
                 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_authenticate_user_username_missing(self):
+	def test_ba_handler_authenticate_username_missing(self):
 		"""
-		Create user, try to authenticate but missing the username;
+		Create account, try to authenticate but missing the username;
 		should result in a missing parameter error. 
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create("someuser1", "otherPassWorddd")
+		self.__account_create("someuser1", "otherPassWorddd")
 
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', None, "otherPassWord")
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', None, "otherPassWord")
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
@@ -1727,11 +1726,11 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
                 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_authenticate_user_password_missing(self):
+	def test_ba_handler_authenticate_password_missing(self):
 		"""
 		Create user, try to authenticate but missing the password;
 		should result in a missing parameter error. 
@@ -1740,13 +1739,13 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertTrue(unittest.ba_db_connect_tested)
 
 		
-		self.__user_create("someuser1", "otherPassWorddd")
+		self.__account_create("someuser1", "otherPassWorddd")
                 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', "someuser1", None)
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', "someuser1", None)
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
@@ -1757,25 +1756,25 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
                 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_authenticate_user_db_comm_error(self):
+	def test_ba_handler_authenticate_db_comm_error(self):
 		"""
-		Create user, try to authenticate using valid username and
+		Create account, try to authenticate using valid username and
 		password, but DB-comm error occurs when trying to validate.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 	
-		self.__user_create("someuser1", "otherPassWorddd")
+		self.__account_create("someuser1", "otherPassWorddd")
                 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', "someuser1", "otherPassWorddd")
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', "someuser1", "otherPassWorddd")
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
@@ -1788,8 +1787,8 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
 
 
-                db_user_state_after = self.__user_dump_all()
-                self.assertEqual(db_user_state_before, db_user_state_after)
+                db_account_state_after = self.__account_dump_all()
+                self.assertEqual(db_account_state_before, db_account_state_after)
 
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
@@ -1797,46 +1796,46 @@ class TestHttpHandlers(unittest.TestCase):
 
 	### User create
 	
-	def test_ba_handler_user_create_no_sig(self):
+	def test_ba_handler_account_create_no_sig(self):
 		"""
-		Attempt to create user, but request is with no Hawk-authorization.
+		Attempt to create account, but request is with no Hawk-authorization.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 		
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST',
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST',
 			'someuser', 'otherpassword')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		del(http_environ['HTTP_AUTHORIZATION'])
 
-		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 	
-                db_user_state_after = self.__user_dump_all()
-                self.assertEqual(db_user_state_before, db_user_state_after)
+                db_account_state_after = self.__account_dump_all()
+                self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_create_corrupt_sig(self):
+	def test_ba_handler_account_create_corrupt_sig(self):
 		"""
-		Attempt to crate user, simulate that the Hawk-signature
+		Attempt to crate account, simulate that the Hawk-signature
 		is corrupt; should result in a 403 Error.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 		
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST',
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST',
 			'someuser', 'otherpassword')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -1851,77 +1850,77 @@ class TestHttpHandlers(unittest.TestCase):
 			replace("A", "s").replace("B", "q").replace("C", "d").replace("D", "e").replace("E", "e").\
 			replace("G", "s").replace("H", "q").replace("I", "d").replace("J", "e").replace("K", "e")
 
-		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
-                db_user_state_after = self.__user_dump_all()
-                self.assertEqual(db_user_state_before, db_user_state_after)
+                db_account_state_after = self.__account_dump_all()
+                self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_create_corrupt_username(self):
+	def test_ba_handler_account_create_corrupt_username(self):
 		"""
-		Attempt to create a user, using a valid signature, but remove the 
+		Attempt to create an account, using a valid signature, but remove the 
 		username from the request; should result in an error.
 			"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 		
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', 
 			'someuser', 'somepassword')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['username'] = "yetanotherusername"
 
-		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 		
-                db_user_state_after = self.__user_dump_all()
-                self.assertEqual(db_user_state_before, db_user_state_after)
+                db_account_state_after = self.__account_dump_all()
+                self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_create_corrupt_password(self):
+	def test_ba_handler_account_create_corrupt_password(self):
 		"""
-		Attempt to create a user, using a valid signature, but remove the 
+		Attempt to create an account, using a valid signature, but remove the 
 		password from the request; should result in an error.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', 
 			'someuser', 'onepassword')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['password'] = "yetanotherpassword"
 
-		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
-                db_user_state_after = self.__user_dump_all()
-                self.assertEqual(db_user_state_before, db_user_state_after)
+                db_account_state_after = self.__account_dump_all()
+                self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_create_ok(self):
+	def test_ba_handler_account_create_ok(self):
 		"""
-		Attempt to create a user, using a valid signature,
+		Attempt to create an account, using a valid signature,
 		valid username, valid password. Do this multiple times.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -1934,10 +1933,10 @@ class TestHttpHandlers(unittest.TestCase):
 
 		for i in range(0, 50):
 			(http_server, http_client, http_req, http_req_params, http_environ, 
-				mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', 
+				mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', 
 				"someuser" + str(i), "otherPassWord")
 	
-			auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
+			auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
 			self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "username": "someuser' + str(i) + '"}'))
 			self.assertEqual(http_server.getinfo()[0], '200 OK')
@@ -1946,11 +1945,11 @@ class TestHttpHandlers(unittest.TestCase):
 		# Do data-integrity checks
 		#
 
-		db_user_state_after = list(self.__user_dump_all())
+		db_account_state_after = list(self.__account_dump_all())
 
 		#
 		# We remove from the data-comparision check the newly
-		# created users -- but first we do some checks.
+		# created accounts -- but first we do some checks.
 		#
 		# By doing this we can be sure that nothing was touched 
 		# that should not have been touched, and that everything
@@ -1958,32 +1957,32 @@ class TestHttpHandlers(unittest.TestCase):
 
 		toremove = list()
 
-		for db_row_num in range(0, len(db_user_state_after)):
+		for db_row_num in range(0, len(db_account_state_after)):
 			# Find 'someuserXX' ...
-			if (db_user_state_after[db_row_num][2].find('someuser') == 0):
+			if (db_account_state_after[db_row_num][2].find('someuser') == 0):
 
 				# Check if account is enabled
-				self.assertTrue(db_user_state_after[db_row_num][1] == 1)
+				self.assertTrue(db_account_state_after[db_row_num][1] == 1)
 
 				# Check that password-string is there
-				self.assertTrue(len(db_user_state_after[db_row_num][3]) > 0)
+				self.assertTrue(len(db_account_state_after[db_row_num][3]) > 0)
 
 				# Check that salt is there
-				self.assertTrue(len(db_user_state_after[db_row_num][4]) > 0)
+				self.assertTrue(len(db_account_state_after[db_row_num][4]) > 0)
 
 				# Check that created_at is set
-				self.assertTrue(db_user_state_after[db_row_num][5] > 0)
+				self.assertTrue(db_account_state_after[db_row_num][5] > 0)
 
 				# Make sure that updated_at is not set
-				self.assertTrue(db_user_state_after[db_row_num][6] == None)
+				self.assertTrue(db_account_state_after[db_row_num][6] == None)
 
 				# All good. Make sure that this entry is removed
 				# from the after-data tuple.
-				toremove.append(db_user_state_after[db_row_num])
+				toremove.append(db_account_state_after[db_row_num])
 
 		
 		#
-		# We should have created 50 users
+		# We should have created 50 accounts 
 		# -- this list should have been populated
 		# above.
 		#
@@ -1992,123 +1991,123 @@ class TestHttpHandlers(unittest.TestCase):
 
 		for i in range(0, len(toremove)):
 			# Remove all entries that were OK
-			db_user_state_after.remove(toremove[i])	
+			db_account_state_after.remove(toremove[i])	
 
-		db_user_state_after = tuple(db_user_state_after)
+		db_account_state_after = tuple(db_account_state_after)
 	
 		# All entries we created were removed, things
 		# should be exactly the same then as in the beginning.
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_create_username_not_ok(self):
+	def test_ba_handler_account_create_username_not_ok(self):
 		"""
-		Attempt to create a user with an invalid username.
+		Attempt to create an account with an invalid username.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', 
 			u"someotherusernameæði", "otherPassWord")
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
-		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username is not acceptable"}'))
 		self.assertEqual(http_server.getinfo()[0], '406 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_create_password_not_ok(self):
+	def test_ba_handler_account_create_password_not_ok(self):
 		"""
-		Attempt to create a user with an invalid password.
+		Attempt to create an account with an invalid password.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', 
 			"someuser1", u"otherPassWordæði200"  + chr(2) + chr(3))
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
-		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Password is not acceptable"}'))
 		self.assertEqual(http_server.getinfo()[0], '406 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_create_username_missing(self):
+	def test_ba_handler_account_create_username_missing(self):
 		"""
-		Attempt to create a user-account with a valid password,
+		Attempt to create an account with a valid password,
 		but not username. Request is signed. 
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 		
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', None, "otherPassWord")
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', None, "otherPassWord")
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 
-		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username and/or password missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_create_password_missing(self):
+	def test_ba_handler_account_create_password_missing(self):
 		"""
-		Attempt to create a user-account with a valid username,
+		Attempt to create an account with a valid username,
 		but no password. Request is signed.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 		
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', "someuser1", None)
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', "someuser1", None)
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 
-		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username and/or password missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_create_user_exists(self):
+	def test_ba_handler_account_create_account_exists(self):
 		"""
-		Attempt to create a user-account, with a username that already exists.
+		Attempt to create an account, with a username that already exists.
 		Request is signed.
 		"""
 
@@ -2116,53 +2115,53 @@ class TestHttpHandlers(unittest.TestCase):
 
 		
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', "someuser1", "thatpassword1")
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', "someuser1", "thatpassword1")
 
-		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "username": "someuser1"}'))
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
 
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', "someuser1", "thatpassword2")
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', "someuser1", "thatpassword2")
 		ba_core.BA_MOHAWK_ENABLED = 1
 
-		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username exists"}'))
 		self.assertEqual(http_server.getinfo()[0], '422 Error')
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_create_db_comm_error(self):
+	def test_ba_handler_account_create_db_comm_error(self):
 		"""
-		Attempt to create a user, but simulate that
+		Attempt to create an account, but simulate that
 		connection to DB could not be established. 
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create("someuser1", "otherPassWorddd")
+		self.__account_create("someuser1", "otherPassWorddd")
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/create', 'POST', "someuser1", "otherPassWorddd")
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', "someuser1", "otherPassWorddd")
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 		ba_core.BA_DB_NAME += "-------------------"
 
-		auth_handler_ret = ba_core.ba_handler_user_create(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
@@ -2170,56 +2169,56 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	### User exists
+	### Account exists
 
-	def test_ba_handler_user_exists_no_sig(self):
+	def test_ba_handler_account_exists_no_sig(self):
 		"""
-		Check if user exists, but no Hawk authorization header
+		Check if account exists, but no Hawk authorization header
 		is part of request.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__user_create('someuser', 'somepassword')
+		self.__account_create('someuser', 'somepassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', 
 			'someuser')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		del(http_environ['HTTP_AUTHORIZATION'])
 
-		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_exists_sig_corrupt(self):
+	def test_ba_handler_account_exists_sig_corrupt(self):
 		"""
-		Check if user exists, but corrupt Hawk authorization header.
+		Check if account exists, but corrupt Hawk authorization header.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)		
 
-		self.__user_create('otheruser', 'somepass')
+		self.__account_create('otheruser', 'somepass')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET',
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET',
 			'someuser')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -2235,115 +2234,115 @@ class TestHttpHandlers(unittest.TestCase):
 			replace("A", "s").replace("B", "q").replace("C", "d").replace("D", "e").replace("E", "e").\
 			replace("G", "s").replace("H", "q").replace("I", "d").replace("J", "e").replace("K", "e")
 
-		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_exists_corrupt_username(self):
+	def test_ba_handler_account_exists_corrupt_username(self):
 		"""
-		Check if user exists, but Hawk data is corrupt,
+		Check if account exists, but Hawk data is corrupt,
 		so request should fail.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser', 'somepassword15')
+		self.__account_create('someuser', 'somepassword15')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', 
 			'someuser')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['username'] = "yetanotherusername"
 
-		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_exists_username_not_ok(self):
+	def test_ba_handler_account_exists_username_not_ok(self):
 		"""
-		Check if user exists, but use invalid username.
+		Check if account exists, but use invalid username.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someusername', 'atleastpassword')
+		self.__account_create('someusername', 'atleastpassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', 
 			"someusername---")
 
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
-		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username is not acceptable"}'))
 		self.assertEqual(http_server.getinfo()[0], '406 Error')
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_exists_username_missing(self):
+	def test_ba_handler_account_exists_username_missing(self):
 		"""
-		Check if user exists, with no username (but password).
+		Check if account exists, with no username (but password).
 		Should fail.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__user_create('someuser', 'ispassword')
+		self.__account_create('someuser', 'ispassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET', None)
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', None)
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 
-		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_exists_db_comm_error(self):
+	def test_ba_handler_account_exists_db_comm_error(self):
 		"""
-		Check if user exists, but simulate DB-communication
+		Check if account exists, but simulate DB-communication
 		error when checking. Should fail gracefully.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create("someuser1", "otherPassWorddd")
+		self.__account_create("someuser1", "otherPassWorddd")
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET', "someuser1", None)
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', "someuser1", None)
 
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -2351,39 +2350,39 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 		ba_core.BA_DB_NAME += "-------------------"
 
-		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_exists_ok(self):
+	def test_ba_handler_account_exists_ok(self):
 		"""
-		Check if user exists, with a valid username,
+		Check if account exists, with a valid username,
 		should succeed.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__user_create("someuser1", "otherPassWorddd")
+		self.__account_create("someuser1", "otherPassWorddd")
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET', "someuser1", None)
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', "someuser1", None)
 
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
-		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "message": "Username exists"}'))
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
@@ -2391,32 +2390,32 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_exists_no_user_existing(self):
+	def test_ba_handler_account_exists_no_account_existing(self):
 		"""
-		Check if username exists with a user that does
-		not exist. Should return an error.
+		Check if account exists when it does not.
+		Should return an error.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create("someuser1", "otherPassWorddd")
+		self.__account_create("someuser1", "otherPassWorddd")
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/exists', 'GET', "someuser2", None)
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', "someuser2", None)
 
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
-		auth_handler_ret = ba_core.ba_handler_user_exists(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
@@ -2424,56 +2423,56 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
 	### Password change 
 
-	def test_ba_handler_user_passwordchange_no_sig(self):
+	def test_ba_handler_account_passwordchange_no_sig(self):
 		"""
-		Check if user exists, but no Hawk authorization header
+		Check if account exists, but no Hawk authorization header
 		is part of request.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser', 'somepassword')
+		self.__account_create('someuser', 'somepassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someuser', 'somepassword')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		del(http_environ['HTTP_AUTHORIZATION'])
 
-		auth_handler_ret = ba_core.ba_handler_user_passwordchange(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_passwordchange_sig_corrupt(self):
+	def test_ba_handler_account_passwordchange_sig_corrupt(self):
 		"""
-		Check if user exists, but corrupt Hawk authorization header.
+		Check if account exists, but corrupt Hawk authorization header.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('otheruser', 'somepass')
+		self.__account_create('otheruser', 'somepass')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT',
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT',
 			'otheruser', 'someotherpass')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -2489,238 +2488,238 @@ class TestHttpHandlers(unittest.TestCase):
 			replace("A", "s").replace("B", "q").replace("C", "d").replace("D", "e").replace("E", "e").\
 			replace("G", "s").replace("H", "q").replace("I", "d").replace("J", "e").replace("K", "e")
 
-		auth_handler_ret = ba_core.ba_handler_user_passwordchange(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_passwordchange_corrupt_username(self):
+	def test_ba_handler_account_passwordchange_corrupt_username(self):
 		"""
-		Check if user exists, but Hawk data is corrupt,
+		Check if account exists, but Hawk data is corrupt,
 		so request should fail.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser', 'somepassword15')
+		self.__account_create('someuser', 'somepassword15')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someuser', 'somepassword15')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['username'] = "yetanotherusername"
 
-		auth_handler_ret = ba_core.ba_handler_user_passwordchange(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_passwordchange_corrupt_password(self):
+	def test_ba_handler_account_passwordchange_corrupt_password(self):
 		"""
-		Check if user exists, but Hawk data is corrupt,
+		Check if account exists, but Hawk data is corrupt,
 		so request should fail.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser', 'somepassword15')
+		self.__account_create('someuser', 'somepassword15')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someuser', 'somepassword15abc')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['password'] = "yetanotherpassword"
 
-		auth_handler_ret = ba_core.ba_handler_user_passwordchange(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_passwordchange_username_not_ok(self):
+	def test_ba_handler_account_passwordchange_username_not_ok(self):
 		"""
-		Check if user exists, but use invalid username.
+		Check if account exists, but use invalid username.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someusername', 'atleastpassword')
+		self.__account_create('someusername', 'atleastpassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			"someusername---", 'atleastpasswordB')
 
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
-		auth_handler_ret = ba_core.ba_handler_user_passwordchange(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username is not acceptable"}'))
 		self.assertEqual(http_server.getinfo()[0], '406 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_passwordchange_password_not_ok(self):
+	def test_ba_handler_account_passwordchange_password_not_ok(self):
 		"""
-		Check if user exists, but use invalid password.
+		Check if account exists, but use invalid password.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someusername', 'atleastpassword')
+		self.__account_create('someusername', 'atleastpassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someusername', 'atleastpassword' + chr(5))
 
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
-		auth_handler_ret = ba_core.ba_handler_user_passwordchange(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Password is not acceptable"}'))
 		self.assertEqual(http_server.getinfo()[0], '406 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_passwordchange_username_missing(self):
+	def test_ba_handler_account_passwordchange_username_missing(self):
 		"""
-		Check if user exists, with no username (but password).
+		Check if account exists, with no username (but password).
 		Should fail.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser', 'ispassword')
+		self.__account_create('someuser', 'ispassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			None, 'ispassword')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 
-		auth_handler_ret = ba_core.ba_handler_user_passwordchange(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username and/or password missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_passwordchange_password_missing(self):
+	def test_ba_handler_account_passwordchange_password_missing(self):
 		"""
-		Check if user exists, with no password (but username).
+		Check if account exists, with no password (but username).
 		Should fail.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser', 'ispassword')
+		self.__account_create('someuser', 'ispassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someuser', None)
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 
-		auth_handler_ret = ba_core.ba_handler_user_passwordchange(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username and/or password missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_passwordchange_username_and_password_missing(self):
+	def test_ba_handler_account_passwordchange_username_and_password_missing(self):
 		"""
-		Check if user exists, with no password nor username.
+		Check if account exists, with no password nor username.
 		Should fail.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser', 'ispassword')
+		self.__account_create('someuser', 'ispassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			None, None)
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 
-		auth_handler_ret = ba_core.ba_handler_user_passwordchange(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username and/or password missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 		
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_passwordchange_db_comm_error(self):
+	def test_ba_handler_account_passwordchange_db_comm_error(self):
 		"""
-		Check if user exists, but simulate DB-communication
+		Check if account exists, but simulate DB-communication
 		error when checking. Should fail gracefully.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__user_create('someuser1', 'otherPassWorddd')
+		self.__account_create('someuser1', 'otherPassWorddd')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someuser1', 'otherPassWorddd')
 
 
@@ -2729,7 +2728,7 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 		ba_core.BA_DB_NAME += "-------------------"
 
-		auth_handler_ret = ba_core.ba_handler_user_passwordchange(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
@@ -2737,21 +2736,21 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_passwordchange_ok(self):
+	def test_ba_handler_account_passwordchange_ok(self):
 		"""
-		Check if user exists, with a valid username,
+		Check if account exists, with a valid username,
 		should succeed.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__user_create('someuser1', 'otherPassWorddd')
+		self.__account_create('someuser1', 'otherPassWorddd')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		#
@@ -2759,7 +2758,7 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'otherPassWorddd')
 
 
@@ -2778,7 +2777,7 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'other15000PPaSS')
 
 
@@ -2797,7 +2796,7 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someuser1', 'other15000PPaSS')
 
 
@@ -2805,7 +2804,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
-		auth_handler_ret = ba_core.ba_handler_user_passwordchange(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "message": "Updated password"}'))
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
@@ -2816,7 +2815,7 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'other15000PPaSS')
 
 
@@ -2835,7 +2834,7 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'otherPassWorddd')
 
 
@@ -2856,70 +2855,70 @@ class TestHttpHandlers(unittest.TestCase):
 		# Some magic needed: 
 		#
 		# Convert from tuple and back; 
-		# see test_ba_handler_user_enable_ok()
+		# see test_ba_handler_account_enable_ok()
 		# 
 
-		db_user_state_after = list(self.__user_dump_all())
+		db_account_state_after = list(self.__account_dump_all())
 
 		db_did_find_change = False
 
-		for db_row_num in range(0, len(db_user_state_after)):
-			# Try to find data for this user...
-			if (db_user_state_after[db_row_num][2] == 'someuser1'):
-				db_user_state_after[db_row_num] = list(db_user_state_after[db_row_num])
+		for db_row_num in range(0, len(db_account_state_after)):
+			# Try to find data for this account...
+			if (db_account_state_after[db_row_num][2] == 'someuser1'):
+				db_account_state_after[db_row_num] = list(db_account_state_after[db_row_num])
 
 
 				# Make sure username is the in the same row in before 
 				# and after data. Necessary so that we can be sure
 				# we copy the right data below.
 				
-				self.assertEqual(db_user_state_before[db_row_num][2], 
-					db_user_state_after[db_row_num][2])
+				self.assertEqual(db_account_state_before[db_row_num][2], 
+					db_account_state_after[db_row_num][2])
 
 				# Verify that updated_at in after-data is higher than 0 (expected)
-				self.assertNotEqual(db_user_state_after[db_row_num][6], None)
-				self.assertEqual(db_user_state_after[db_row_num][6] > 0, True)
+				self.assertNotEqual(db_account_state_after[db_row_num][6], None)
+				self.assertEqual(db_account_state_after[db_row_num][6] > 0, True)
 
 				# Now change it to None 
-				db_user_state_after[db_row_num][6] = None
+				db_account_state_after[db_row_num][6] = None
 
 
 				# Verify that password & salt are strings longer than 0
-				self.assertTrue(len(db_user_state_after[db_row_num][3]) > 0)
-				self.assertTrue(len(db_user_state_after[db_row_num][4]) > 0)
+				self.assertTrue(len(db_account_state_after[db_row_num][3]) > 0)
+				self.assertTrue(len(db_account_state_after[db_row_num][4]) > 0)
 
 				# Then copy the original, and overwrite the after data
-				db_user_state_after[db_row_num][3] = db_user_state_before[db_row_num][3]
-				db_user_state_after[db_row_num][4] = db_user_state_before[db_row_num][4]
+				db_account_state_after[db_row_num][3] = db_account_state_before[db_row_num][3]
+				db_account_state_after[db_row_num][4] = db_account_state_before[db_row_num][4]
 
 
-				db_user_state_after[db_row_num] = tuple(db_user_state_after[db_row_num])
+				db_account_state_after[db_row_num] = tuple(db_account_state_after[db_row_num])
 
 				db_did_find_change = True
 
 				break
 
 
-		db_user_state_after = tuple(db_user_state_after)
+		db_account_state_after = tuple(db_account_state_after)
 
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		self.assertEqual(db_account_state_before, db_account_state_after)
 		self.assertTrue(db_did_find_change)
 
-	def test_ba_handler_user_passwordchange_no_user_existing(self):
+	def test_ba_handler_account_passwordchange_no_account_existing(self):
 		"""
-		Check if username exists with a user that does
+		Check if username exists with an account that does
 		not exist. Should return an error.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser1', 'otherPassWorddd')
+		self.__account_create('someuser1', 'otherPassWorddd')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/passwordchange', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someuser2', 'otherPassWorddd')
 
 
@@ -2927,7 +2926,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
-		auth_handler_ret = ba_core.ba_handler_user_passwordchange(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
@@ -2935,56 +2934,56 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	### Enable user 
+	### Enable account 
 
-	def test_ba_handler_user_enable_no_sig(self):
+	def test_ba_handler_account_enable_no_sig(self):
 		"""
-		Check if user exists, but no Hawk authorization header
+		Check if account exists, but no Hawk authorization header
 		is part of request.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser', 'somepassword')
+		self.__account_create('someuser', 'somepassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/enable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			'someuser')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		del(http_environ['HTTP_AUTHORIZATION'])
 
-		auth_handler_ret = ba_core.ba_handler_user_enable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_enable_sig_corrupt(self):
+	def test_ba_handler_account_enable_sig_corrupt(self):
 		"""
-		Check if user exists, but corrupt Hawk authorization header.
+		Check if account exists, but corrupt Hawk authorization header.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('otheruser', 'somepass')
+		self.__account_create('otheruser', 'somepass')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/enable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			'otheruser')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -3000,119 +2999,119 @@ class TestHttpHandlers(unittest.TestCase):
 			replace("A", "s").replace("B", "q").replace("C", "d").replace("D", "e").replace("E", "e").\
 			replace("G", "s").replace("H", "q").replace("I", "d").replace("J", "e").replace("K", "e")
 
-		auth_handler_ret = ba_core.ba_handler_user_enable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_enable_corrupt_username(self):
+	def test_ba_handler_account_enable_corrupt_username(self):
 		"""
-		Check if user exists, but Hawk data is corrupt,
+		Check if account exists, but Hawk data is corrupt,
 		so request should fail.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__user_create('someuser', 'somepassword15')
+		self.__account_create('someuser', 'somepassword15')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/enable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			'someuser')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['username'] = "yetanotherusername"
 
-		auth_handler_ret = ba_core.ba_handler_user_enable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_enable_username_not_ok(self):
+	def test_ba_handler_account_enable_username_not_ok(self):
 		"""
-		Check if user exists, but use invalid username.
+		Check if account exists, but use invalid username.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someusername', 'atleastpassword')
+		self.__account_create('someusername', 'atleastpassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/enable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			"someusername---")
 
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
-		auth_handler_ret = ba_core.ba_handler_user_enable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username is not acceptable"}'))
 		self.assertEqual(http_server.getinfo()[0], '406 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_enable_username_missing(self):
+	def test_ba_handler_account_enable_username_missing(self):
 		"""
-		Check if user exists, with no username (but password).
+		Check if account exists, with no username (but password).
 		Should fail.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser', 'ispassword')
+		self.__account_create('someuser', 'ispassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/enable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			None)
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 
-		auth_handler_ret = ba_core.ba_handler_user_enable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_enable_db_comm_error(self):
+	def test_ba_handler_account_enable_db_comm_error(self):
 		"""
-		Check if user exists, but simulate DB-communication
+		Check if account exists, but simulate DB-communication
 		error when checking. Should fail gracefully.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser1', 'otherPassWorddd')
+		self.__account_create('someuser1', 'otherPassWorddd')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/enable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			'someuser1')
 
 
@@ -3121,7 +3120,7 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 		ba_core.BA_DB_NAME += "-------------------"
 
-		auth_handler_ret = ba_core.ba_handler_user_enable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
@@ -3129,21 +3128,21 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_enable_ok(self):
+	def test_ba_handler_account_enable_ok(self):
 		"""
-		Check if user exists, with a valid username,
+		Check if account exists, with a valid username,
 		should succeed.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser1', 'otherPassWorddd')
+		self.__account_create('someuser1', 'otherPassWorddd')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		#
@@ -3151,7 +3150,7 @@ class TestHttpHandlers(unittest.TestCase):
 		# -- should succeed
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'otherPassWorddd')
 
 
@@ -3170,7 +3169,7 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		db_cursor = self.db_conn.cursor()
-		db_cursor.execute("UPDATE users SET enabled = 0 WHERE username = %s", [ "someuser1" ])
+		db_cursor.execute("UPDATE accounts SET enabled = 0 WHERE username = %s", [ "someuser1" ])
 		self.db_conn.commit()
 
 
@@ -3180,7 +3179,7 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'otherPassWorddd')
 
 
@@ -3199,7 +3198,7 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/enable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			'someuser1')
 
 
@@ -3207,7 +3206,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
-		auth_handler_ret = ba_core.ba_handler_user_enable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "message": "User enabled"}'))
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
@@ -3218,7 +3217,7 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'otherPassWorddd')
 
 
@@ -3249,47 +3248,47 @@ class TestHttpHandlers(unittest.TestCase):
 		# so that the data-type matches the before-data.
 		#
 
-		db_user_state_after = list(self.__user_dump_all())
+		db_account_state_after = list(self.__account_dump_all())
 
 		db_did_find_change = False
 
-		for db_row_num in range(0, len(db_user_state_after)):
-			# Try to find data for this user...
-			if (db_user_state_after[db_row_num][2] == 'someuser1'):
-				db_user_state_after[db_row_num] = list(db_user_state_after[db_row_num])
+		for db_row_num in range(0, len(db_account_state_after)):
+			# Try to find data for this account...
+			if (db_account_state_after[db_row_num][2] == 'someuser1'):
+				db_account_state_after[db_row_num] = list(db_account_state_after[db_row_num])
 
 				# Verify that updated_at in after-data is higher than 0 (expected)
-				self.assertNotEqual(db_user_state_after[db_row_num][6], None)
-				self.assertEqual(db_user_state_after[db_row_num][6] > 0, True)
+				self.assertNotEqual(db_account_state_after[db_row_num][6], None)
+				self.assertEqual(db_account_state_after[db_row_num][6] > 0, True)
 
 				# Now change it to None 
-				db_user_state_after[db_row_num][6] = None
+				db_account_state_after[db_row_num][6] = None
 
-				db_user_state_after[db_row_num] = tuple(db_user_state_after[db_row_num])
+				db_account_state_after[db_row_num] = tuple(db_account_state_after[db_row_num])
 
 				db_did_find_change = True
 
-		db_user_state_after = tuple(db_user_state_after)
+		db_account_state_after = tuple(db_account_state_after)
 
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		self.assertEqual(db_account_state_before, db_account_state_after)
 		self.assertTrue(db_did_find_change)
 
 
-	def test_ba_handler_user_enable_no_user_existing(self):
+	def test_ba_handler_account_enable_no_account_existing(self):
 		"""
-		Check if username exists with a user that does
+		Check if username exists with an account that does
 		not exist. Should return an error.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser1', 'otherPassWorddd')
+		self.__account_create('someuser1', 'otherPassWorddd')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/enable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			'someuser2')
 
 
@@ -3297,7 +3296,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
-		auth_handler_ret = ba_core.ba_handler_user_enable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
@@ -3305,56 +3304,56 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	### Disable user 
+	### Disable account 
 
-	def test_ba_handler_user_disable_no_sig(self):
+	def test_ba_handler_account_disable_no_sig(self):
 		"""
-		Check if user exists, but no Hawk authorization header
+		Check if account exists, but no Hawk authorization header
 		is part of request.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__user_create('someuser', 'somepassword')
+		self.__account_create('someuser', 'somepassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/disable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			'someuser')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		del(http_environ['HTTP_AUTHORIZATION'])
 
-		auth_handler_ret = ba_core.ba_handler_user_disable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_disable_sig_corrupt(self):
+	def test_ba_handler_account_disable_sig_corrupt(self):
 		"""
-		Check if user exists, but corrupt Hawk authorization header.
+		Check if account exists, but corrupt Hawk authorization header.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('otheruser', 'somepass')
+		self.__account_create('otheruser', 'somepass')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/disable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			'otheruser')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
@@ -3370,119 +3369,119 @@ class TestHttpHandlers(unittest.TestCase):
 			replace("A", "s").replace("B", "q").replace("C", "d").replace("D", "e").replace("E", "e").\
 			replace("G", "s").replace("H", "q").replace("I", "d").replace("J", "e").replace("K", "e")
 
-		auth_handler_ret = ba_core.ba_handler_user_disable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_disable_corrupt_username(self):
+	def test_ba_handler_account_disable_corrupt_username(self):
 		"""
-		Check if user exists, but Hawk data is corrupt,
+		Check if account exists, but Hawk data is corrupt,
 		so request should fail.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser', 'somepassword15')
+		self.__account_create('someuser', 'somepassword15')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/disable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			'someuser')
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['username'] = "yetanotherusername"
 
-		auth_handler_ret = ba_core.ba_handler_user_disable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Signature validation of your request failed."}'))
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 	
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_disable_username_not_ok(self):
+	def test_ba_handler_account_disable_username_not_ok(self):
 		"""
-		Check if user exists, but use invalid username.
+		Check if account exists, but use invalid username.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someusername', 'atleastpassword')
+		self.__account_create('someusername', 'atleastpassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/disable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			"someusername---")
 
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
-		auth_handler_ret = ba_core.ba_handler_user_disable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username is not acceptable"}'))
 		self.assertEqual(http_server.getinfo()[0], '406 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_disable_username_missing(self):
+	def test_ba_handler_account_disable_username_missing(self):
 		"""
-		Check if user exists, with no username (but password).
+		Check if account exists, with no username (but password).
 		Should fail.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__user_create('someuser', 'ispassword')
+		self.__account_create('someuser', 'ispassword')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/disable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			None)
 
 		ba_core.BA_MOHAWK_ENABLED = 1
 
 
-		auth_handler_ret = ba_core.ba_handler_user_disable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username missing"}'))
 		self.assertEqual(http_server.getinfo()[0], '400 Error')
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_disable_db_comm_error(self):
+	def test_ba_handler_account_disable_db_comm_error(self):
 		"""
-		Check if user exists, but simulate DB-communication
+		Check if account exists, but simulate DB-communication
 		error when checking. Should fail gracefully.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 		
-		self.__user_create('someuser1', 'otherPassWorddd')
+		self.__account_create('someuser1', 'otherPassWorddd')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/disable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			'someuser1')
 
 
@@ -3491,7 +3490,7 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 		ba_core.BA_DB_NAME += "-------------------"
 
-		auth_handler_ret = ba_core.ba_handler_user_disable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
@@ -3499,21 +3498,21 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
 
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-	def test_ba_handler_user_disable_ok(self):
+	def test_ba_handler_account_disable_ok(self):
 		"""
-		Check if user exists, with a valid username,
+		Check if account exists, with a valid username,
 		should succeed.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__user_create('someuser1', 'otherPassWorddd')
+		self.__account_create('someuser1', 'otherPassWorddd')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		#
@@ -3521,7 +3520,7 @@ class TestHttpHandlers(unittest.TestCase):
 		# -- should succeed
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'otherPassWorddd')
 
 
@@ -3540,7 +3539,7 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/disable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			'someuser1')
 
 
@@ -3548,7 +3547,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
-		auth_handler_ret = ba_core.ba_handler_user_disable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "message": "User disabled"}'))
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
@@ -3560,7 +3559,7 @@ class TestHttpHandlers(unittest.TestCase):
 		#
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/authenticate', 'POST', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'otherPassWorddd')
 
 
@@ -3581,60 +3580,60 @@ class TestHttpHandlers(unittest.TestCase):
 		# Some magic needed: 
 		#
 		# Convert from tuple and back; 
-		# see test_ba_handler_user_enable_ok()
+		# see test_ba_handler_account_enable_ok()
 		# 
 
-		db_user_state_after = list(self.__user_dump_all())
+		db_account_state_after = list(self.__account_dump_all())
 
 		db_did_find_change = False
 
-		for db_row_num in range(0, len(db_user_state_after)):
-			# Try to find data for this user...
-			if (db_user_state_after[db_row_num][2] == 'someuser1'):
-				db_user_state_after[db_row_num] = list(db_user_state_after[db_row_num])
+		for db_row_num in range(0, len(db_account_state_after)):
+			# Try to find data for this account...
+			if (db_account_state_after[db_row_num][2] == 'someuser1'):
+				db_account_state_after[db_row_num] = list(db_account_state_after[db_row_num])
 
 				# Verify that enabled is 0 (expected)
-				self.assertEqual(db_user_state_after[db_row_num][1], 0) 
+				self.assertEqual(db_account_state_after[db_row_num][1], 0) 
 
 				# Now change it to 1 so that equality test will succeed
-				db_user_state_after[db_row_num][1] = 1
+				db_account_state_after[db_row_num][1] = 1
 
 
 				# Verify that updated_at in after-data is higher than 0 (expected)
-				self.assertNotEqual(db_user_state_after[db_row_num][6], None)
-				self.assertEqual(db_user_state_after[db_row_num][6] > 0, True)
+				self.assertNotEqual(db_account_state_after[db_row_num][6], None)
+				self.assertEqual(db_account_state_after[db_row_num][6] > 0, True)
 
 				# Now change it to None 
-				db_user_state_after[db_row_num][6] = None
+				db_account_state_after[db_row_num][6] = None
 
 
-				db_user_state_after[db_row_num] = tuple(db_user_state_after[db_row_num])
+				db_account_state_after[db_row_num] = tuple(db_account_state_after[db_row_num])
 
 				db_did_find_change = True
 
 				break
 
-		db_user_state_after = tuple(db_user_state_after)
+		db_account_state_after = tuple(db_account_state_after)
 
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		self.assertEqual(db_account_state_before, db_account_state_after)
 		self.assertTrue(db_did_find_change)
 
 
-	def test_ba_handler_user_disable_no_user_existing(self):
+	def test_ba_handler_account_disable_no_account_existing(self):
 		"""
-		Check if username exists with a user that does
+		Check if username exists with a account that does
 		not exist. Should return an error.
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		self.__user_create('someuser1', 'otherPassWorddd')
+		self.__account_create('someuser1', 'otherPassWorddd')
 
-		db_user_state_before = self.__user_dump_all()
+		db_account_state_before = self.__account_dump_all()
 
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
-			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/disable', 'PUT', 
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			'someuser2')
 
 
@@ -3642,7 +3641,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
-		auth_handler_ret = ba_core.ba_handler_user_disable(http_environ, http_server, None)
+		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
@@ -3650,8 +3649,8 @@ class TestHttpHandlers(unittest.TestCase):
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
 
 	
-		db_user_state_after = self.__user_dump_all()
-		self.assertEqual(db_user_state_before, db_user_state_after)
+		db_account_state_after = self.__account_dump_all()
+		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
 
