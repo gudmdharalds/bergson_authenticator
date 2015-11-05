@@ -833,7 +833,7 @@ def ba_handler_user_passwordchange(http_environ, start_response, args_extra):
 
 
 	#
-	# New see if user already exists 
+	# New see if user exists 
 	# in DB. 
 	#
 
