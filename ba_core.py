@@ -682,7 +682,7 @@ def ba_handler_account_create(http_environ, start_response, args_extra):
 
 	# Check if account already exists
 	if (len(db_account_info) != 0):
-		return ba_http_resp_json(mohawk_sig_res, start_response, 422, None, { 'error': 'Username exists' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 422, None, { 'error': 'Account exists' })
 
 	# Now create random salt, and create
 	# hash of given password using that.
@@ -772,10 +772,10 @@ def ba_handler_account_exists(http_environ, start_response, args_extra):
 
 	# Check if account already exists
 	if (len(db_account_info) == 1):
-		return ba_http_resp_json(mohawk_sig_res, start_response, 200, None, { 'status': 1, 'message': 'Username exists' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 200, None, { 'status': 1, 'message': 'Account exists' })
 	
 	else:
-		return ba_http_resp_json(mohawk_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 404, None, { 'error': 'Account does not exist' })
 
 
 def ba_handler_account_passwordchange(http_environ, start_response, args_extra):
@@ -852,7 +852,7 @@ def ba_handler_account_passwordchange(http_environ, start_response, args_extra):
 
 	# Check if account already exists
 	if (len(db_account_info) == 0):
-		return ba_http_resp_json(mohawk_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 404, None, { 'error': 'Account does not exist' })
 
 
 	#
@@ -944,7 +944,7 @@ def ba_handler_account_enable_or_disable(http_environ, start_response, enable_ac
 		return ba_http_resp_json(None, start_response, 500, None, { 'error': 'Database communication error' })
 
 	if (len(db_account_info) != 1):
-		return ba_http_resp_json(mohawk_sig_res, start_response, 404, None, { 'error': 'Username does not exist' })
+		return ba_http_resp_json(mohawk_sig_res, start_response, 404, None, { 'error': 'Account does not exist' })
 
 	#
 	# Ok, account exists, then enable or disable it 

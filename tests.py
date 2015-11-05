@@ -754,6 +754,22 @@ class TestReqInput(unittest.TestCase):
 			'f45b16fcdface4b7633497343cb'))
 
 class TestMowhak(unittest.TestCase):
+	def setUp(self):
+		self.db_conn = ba_core.ba_db_connect()
+
+		ba_core.ba_db_create_tables()
+
+
+	def tearDown(self):
+		db_cursor = self.db_conn.cursor()
+		db_cursor.execute("DROP TABLE accounts")
+                
+		db_cursor = self.db_conn.cursor()
+		db_cursor.execute("DROP TABLE nonce")
+
+		self.db_conn.close()
+
+
 	def test_signature_lookup_sender(self):
 
 		#
@@ -779,10 +795,7 @@ class TestMowhak(unittest.TestCase):
 	def test_ba_signature_mohawk_on_all_ok(self):
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_conn = ba_core.ba_db_connect()
-
-		ba_core.ba_db_create_tables()
-
+		
 		#
 		# Because ba_core.ba_signature() contains a probability
 		# condition, repeat this quite often
@@ -820,16 +833,7 @@ class TestMowhak(unittest.TestCase):
 	
 			# Mohawk will throw an exception if validation
 			# fails. We do not have to.
-			ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
-
-                
-		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE accounts")
-                
-		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE nonce")
-
-		db_conn.close()
+			ba_core.ba_signature(self.db_conn, http_environ, req_data_mohawk_test)
 
 
 	def test_ba_signature_mohawk_on_invalid_http_path(self):
@@ -839,9 +843,6 @@ class TestMowhak(unittest.TestCase):
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_conn = ba_core.ba_db_connect()
-
-		ba_core.ba_db_create_tables()
 
 		#
 		# Because ba_core.ba_signature() contains a probability
@@ -881,17 +882,7 @@ class TestMowhak(unittest.TestCase):
 			with self.assertRaises(mohawk.exc.MacMismatch):
 				# Mohawk will throw an exception if validation
 				# fails. We do not have to.
-				ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
-
-
-		# FIXME: Move into setUp and tearDown                
-		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE accounts")
-                
-		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE nonce")
-
-		db_conn.close()
+				ba_core.ba_signature(self.db_conn, http_environ, req_data_mohawk_test)
 
 
 	def test_ba_signature_mohawk_on_injected_data(self):
@@ -901,9 +892,6 @@ class TestMowhak(unittest.TestCase):
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_conn = ba_core.ba_db_connect()
-
-		ba_core.ba_db_create_tables()
 
 		#
 		# Because ba_core.ba_signature() contains a probability
@@ -945,18 +933,9 @@ class TestMowhak(unittest.TestCase):
 			with self.assertRaises(mohawk.exc.MacMismatch):
 				# Mohawk will throw an exception if validation
 				# fails. We do not have to.
-				ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
+				ba_core.ba_signature(self.db_conn, http_environ, req_data_mohawk_test)
 
                 
-		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE accounts")
-                
-		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE nonce")
-
-		db_conn.close()
-
-
 	def test_ba_signature_mohawk_on_repeated_token(self):
 		"""
 		Try if validation fails with Mohawk turned on.
@@ -964,9 +943,6 @@ class TestMowhak(unittest.TestCase):
 
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_conn = ba_core.ba_db_connect()
-
-		ba_core.ba_db_create_tables()
 
 		#
 		# Because ba_core.ba_signature() contains a probability
@@ -1005,30 +981,17 @@ class TestMowhak(unittest.TestCase):
 	
 			# Mohawk will throw an exception if validation
 			# fails. We do not have to.
-			ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
+			ba_core.ba_signature(self.db_conn, http_environ, req_data_mohawk_test)
 
 			# Try repeatedly to re-use token -- should not work
 			for x in range(0, 10):
 				with self.assertRaises(mohawk.exc.AlreadyProcessed):
-					ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
-
-
-                
-		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE accounts")
-                
-		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE nonce")
-
-		db_conn.close()
+					ba_core.ba_signature(self.db_conn, http_environ, req_data_mohawk_test)
 
 
 	def test_ba_signature_mohawk_off_all_ok(self):
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_conn = ba_core.ba_db_connect()
-
-		ba_core.ba_db_create_tables()
 
 		#
 		# Because ba_core.ba_signature() contains a probability
@@ -1061,26 +1024,14 @@ class TestMowhak(unittest.TestCase):
 
 			# Mohawk will throw an exception if validation
 			# fails. We do not have to.
-			ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
+			ba_core.ba_signature(self.db_conn, http_environ, req_data_mohawk_test)
 
 			ba_core.BA_MOHAWK_ENABLED = 1
-
-                
-		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE accounts")
-                
-		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE nonce")
-
-		db_conn.close()
 
 
 	def test_ba_signature_mohawk_off_auth_headers_sent(self):
 		self.assertTrue(unittest.ba_db_connect_tested)
 
-		db_conn = ba_core.ba_db_connect()
-
-		ba_core.ba_db_create_tables()
 
 		#
 		# Because ba_core.ba_signature() contains a probability
@@ -1120,18 +1071,10 @@ class TestMowhak(unittest.TestCase):
 			# 
 
 			with self.assertRaises(AssertionError):
-				ba_core.ba_signature(db_conn, http_environ, req_data_mohawk_test)
+				ba_core.ba_signature(self.db_conn, http_environ, req_data_mohawk_test)
 
 			ba_core.BA_MOHAWK_ENABLED = 1
  
-		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE accounts")
-                
-		db_cursor = db_conn.cursor()
-		db_cursor.execute("DROP TABLE nonce")
-
-		db_conn.close()
-
 
 class TestPasswordFuncs(unittest.TestCase):
 	def test_ba_password_create_salt(self):
@@ -2133,7 +2076,7 @@ class TestHttpHandlers(unittest.TestCase):
 		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
 
-		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username exists"}'))
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Account exists"}'))
 		self.assertEqual(http_server.getinfo()[0], '422 Error')
 
 		db_account_state_after = self.__account_dump_all()
@@ -2384,7 +2327,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 
-		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "message": "Username exists"}'))
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "message": "Account exists"}'))
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
@@ -2417,7 +2360,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 
-		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username does not exist"}'))
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Account does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
@@ -2928,7 +2871,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
-		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username does not exist"}'))
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Account does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
@@ -3208,7 +3151,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 
-		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "message": "User enabled"}'))
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "message": "Account enabled"}'))
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
 
 
@@ -3298,7 +3241,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 
-		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username does not exist"}'))
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Account does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
@@ -3549,7 +3492,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 
-		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "message": "User disabled"}'))
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "message": "Account disabled"}'))
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
 
 
@@ -3643,7 +3586,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 
-		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username does not exist"}'))
+		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Account does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
