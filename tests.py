@@ -1313,7 +1313,7 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 'myuser', 'mypass')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
+
 
 		del(http_environ['HTTP_AUTHORIZATION'])
 
@@ -1342,7 +1342,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 'myuser', 'mypass')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		# Maximize likelyhood of replacing some character(s)
 		http_environ['HTTP_AUTHORIZATION'] = http_environ['HTTP_AUTHORIZATION'].\
@@ -1378,7 +1377,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'myusername', 'mypassword')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['username'] = "yetanotherusername"
 
@@ -1408,7 +1406,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST',
 			'myusername', 'mypassword')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['password'] = "yetanotherpassword"
 
@@ -1428,7 +1425,6 @@ class TestHttpHandlers(unittest.TestCase):
 		"""
 
 		self.assertTrue(unittest.ba_db_connect_tested)
-		
 
                 db_account_state_before = self.__account_dump_all()
 
@@ -1437,7 +1433,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST',
 			'myusername', 'mypassword')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -1477,7 +1472,6 @@ class TestHttpHandlers(unittest.TestCase):
 					mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 					"someuser" + str(i), "otherPassWord")
 
-				ba_core.BA_MOHAWK_ENABLED = 1
 	
 				auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 		
@@ -1528,7 +1522,6 @@ class TestHttpHandlers(unittest.TestCase):
 					mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 					"someuser" + str(i), try_login_password)
 
-				ba_core.BA_MOHAWK_ENABLED = 1
 	
 				auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -1568,7 +1561,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			"someuser1", "otherPassWord")
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -1603,7 +1595,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			"someuser2", "otherPassWord")
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -1632,7 +1623,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			"someuser1", "otherPassWord")
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -1659,8 +1649,6 @@ class TestHttpHandlers(unittest.TestCase):
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', None, "otherPassWord")
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
@@ -1690,8 +1678,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', "someuser1", None)
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -1719,7 +1705,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', "someuser1", "otherPassWorddd")
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 		ba_core.BA_DB_NAME += "-------------------"
@@ -1753,7 +1738,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST',
 			'someuser', 'otherpassword')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		del(http_environ['HTTP_AUTHORIZATION'])
 
@@ -1781,7 +1765,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST',
 			'someuser', 'otherpassword')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		# Maximize likelyhood of replacing some character(s)
 		# so that the signature will become corrupted.
@@ -1816,7 +1799,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', 
 			'someuser', 'somepassword')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['username'] = "yetanotherusername"
 
@@ -1843,7 +1825,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', 
 			'someuser', 'onepassword')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['password'] = "yetanotherpassword"
 
@@ -1865,8 +1846,6 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_before = self.__account_dump_all()
 
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		#
 		# Do this a few times, just
@@ -1957,7 +1936,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', 
 			u"someotherusernameæði", "otherPassWord")
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
@@ -1983,7 +1961,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', 
 			"someuser1", u"otherPassWordæði200"  + chr(2) + chr(3))
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
@@ -2009,7 +1986,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', None, "otherPassWord")
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
@@ -2036,7 +2012,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', "someuser1", None)
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
@@ -2071,7 +2046,6 @@ class TestHttpHandlers(unittest.TestCase):
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', "someuser1", "thatpassword2")
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
@@ -2099,7 +2073,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', "someuser1", "otherPassWorddd")
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 		ba_core.BA_DB_NAME += "-------------------"
@@ -2135,7 +2108,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', 
 			'someuser')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		del(http_environ['HTTP_AUTHORIZATION'])
 
@@ -2163,8 +2135,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET',
 			'someuser')
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		# Maximize likelyhood of replacing some character(s)
@@ -2202,7 +2172,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', 
 			'someuser')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['username'] = "yetanotherusername"
 
@@ -2231,7 +2200,6 @@ class TestHttpHandlers(unittest.TestCase):
 			"someusername---")
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 
@@ -2257,8 +2225,6 @@ class TestHttpHandlers(unittest.TestCase):
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', None)
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
@@ -2287,8 +2253,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', "someuser1", None)
 
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 		ba_core.BA_DB_NAME += "-------------------"
@@ -2321,8 +2285,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', "someuser1", None)
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
@@ -2353,8 +2315,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', "someuser2", None)
 
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
@@ -2389,7 +2349,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someuser', 'somepassword')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		del(http_environ['HTTP_AUTHORIZATION'])
 
@@ -2417,8 +2376,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT',
 			'otheruser', 'someotherpass')
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		# Maximize likelyhood of replacing some character(s)
@@ -2457,7 +2414,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someuser', 'somepassword15')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['username'] = "yetanotherusername"
 
@@ -2487,7 +2443,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someuser', 'somepassword15abc')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['password'] = "yetanotherpassword"
 
@@ -2517,7 +2472,6 @@ class TestHttpHandlers(unittest.TestCase):
 			"someusername---", 'atleastpasswordB')
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
@@ -2546,7 +2500,6 @@ class TestHttpHandlers(unittest.TestCase):
 			'someusername', 'atleastpassword' + chr(5))
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
@@ -2575,7 +2528,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			None, 'ispassword')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
@@ -2605,7 +2557,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someuser', None)
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
@@ -2635,8 +2586,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			None, None)
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
@@ -2665,8 +2614,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/passwordchange', 'PUT', 
 			'someuser1', 'otherPassWorddd')
 
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 		ba_core.BA_DB_NAME += "-------------------"
@@ -2705,8 +2652,6 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'otherPassWorddd')
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
@@ -2723,8 +2668,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'other15000PPaSS')
 
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
@@ -2743,8 +2686,6 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'other15000PPaSS')
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
@@ -2762,8 +2703,6 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'other15000PPaSS')
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
@@ -2780,8 +2719,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'otherPassWorddd')
 
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
@@ -2865,8 +2802,6 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser2', 'otherPassWorddd')
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
@@ -2900,8 +2835,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			'someuser')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		del(http_environ['HTTP_AUTHORIZATION'])
 
 		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
@@ -2928,8 +2861,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			'otheruser')
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		# Maximize likelyhood of replacing some character(s)
@@ -2968,8 +2899,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			'someuser')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		http_environ['params']['username'] = "yetanotherusername"
 
 		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
@@ -2998,8 +2927,6 @@ class TestHttpHandlers(unittest.TestCase):
 			"someusername---")
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username is not acceptable"}'))
@@ -3026,8 +2953,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			None)
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
@@ -3057,8 +2982,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/enable', 'PUT', 
 			'someuser1')
 
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 		ba_core.BA_DB_NAME += "-------------------"
@@ -3097,8 +3020,6 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'otherPassWorddd')
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
@@ -3126,8 +3047,6 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'otherPassWorddd')
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
@@ -3145,8 +3064,6 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1')
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
@@ -3163,8 +3080,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'otherPassWorddd')
 
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
@@ -3235,8 +3150,6 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser2')
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
@@ -3270,7 +3183,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			'someuser')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		del(http_environ['HTTP_AUTHORIZATION'])
 
@@ -3298,8 +3210,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			'otheruser')
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		# Maximize likelyhood of replacing some character(s)
@@ -3338,7 +3248,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			'someuser')
 
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		http_environ['params']['username'] = "yetanotherusername"
 
@@ -3368,8 +3277,6 @@ class TestHttpHandlers(unittest.TestCase):
 			"someusername---")
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username is not acceptable"}'))
@@ -3396,8 +3303,6 @@ class TestHttpHandlers(unittest.TestCase):
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			None)
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 
 		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
@@ -3427,8 +3332,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			'someuser1')
 
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 		ba_core.BA_DB_NAME += "-------------------"
@@ -3467,8 +3370,6 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'otherPassWorddd')
 
 
-		ba_core.BA_MOHAWK_ENABLED = 1
-
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
@@ -3485,8 +3386,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			'someuser1')
 
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
@@ -3505,8 +3404,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 
 			'someuser1', 'otherPassWorddd')
 
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
@@ -3579,8 +3476,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/disable', 'PUT', 
 			'someuser2')
 
-
-		ba_core.BA_MOHAWK_ENABLED = 1
 
 		ba_core_db_name_orig = ba_core.BA_DB_NAME
 
