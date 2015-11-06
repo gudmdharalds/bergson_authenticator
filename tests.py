@@ -1185,28 +1185,10 @@ class TestHttpHandlers(unittest.TestCase):
 		using the API.
 		"""
 
-		http_server = http_server_emulator()
-		http_client = http_client_emulator()
+		(http_server, http_client, http_req, http_req_params, http_environ,
+			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', username, password)
 
-		http_req = {
-			'method': 'POST',
-			'host': 'localhost',
-			'path': '/v1/account/create'
-		}
-
-		http_req_params = { 
-			'username' : username, 
-			'password' : password 
-		}
-
-		ba_core.BA_MOHAWK_ENABLED = 0
-
-		(http_parsed_environ, http_parsed_params) = http_client.request_generate(
-			http_req['method'], http_req['host'], http_req['path'], None, http_req_params)
-
-		ba_core.ba_handler_account_create(http_parsed_environ, http_server, None)
-
-		ba_core.BA_MOHAWK_ENABLED = 1
+		ba_core.ba_handler_account_create(http_environ, http_server, None)
 
 
 	def __account_dump_all(self, exclude = None):
@@ -1286,13 +1268,17 @@ class TestHttpHandlers(unittest.TestCase):
 
 			mohawk_sender_data['content'] += 'password=' + http_parsed_params['password']
 
-		mohawk_sender_sig = mohawk.Sender(ba_core.ba_signature_lookup_sender(mohawk_sender_id),
-			"http://" + http_req['host'] + http_req['path'] + "",
-			http_req['method'],
-			content=mohawk_sender_data['content'],
-			content_type=http_parsed_environ['CONTENT_TYPE'])
+		if (ba_core.BA_MOHAWK_ENABLED == 1):
+			mohawk_sender_sig = mohawk.Sender(ba_core.ba_signature_lookup_sender(mohawk_sender_id),
+				"http://" + http_req['host'] + http_req['path'] + "",
+				http_req['method'],
+				content=mohawk_sender_data['content'],
+				content_type=http_parsed_environ['CONTENT_TYPE'])
 
-		http_parsed_environ['HTTP_AUTHORIZATION'] = mohawk_sender_sig.request_header
+			http_parsed_environ['HTTP_AUTHORIZATION'] = mohawk_sender_sig.request_header
+
+		elif (ba_core.BA_MOHAWK_ENABLED == 0):
+			mohawk_sender_sig = None
 
 		return (http_server, http_client, http_req, http_req_params, http_parsed_environ, mohawk_sender_sig)
 
@@ -1312,7 +1298,6 @@ class TestHttpHandlers(unittest.TestCase):
 
 		(http_server, http_client, http_req, http_req_params, http_environ, 
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', 'myuser', 'mypass')
-
 
 
 		del(http_environ['HTTP_AUTHORIZATION'])
@@ -1484,6 +1469,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_authenticate_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_authenticate_ok()
+
+
 	def test_ba_handler_authenticate_ok_sometimes(self):
 		"""
 		Create a series of accounts. Then try to authenticate against these
@@ -1539,6 +1530,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_authenticate_ok_sometimes_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_authenticate_ok_sometimes()
+
+
 	def test_ba_handler_authenticate_disabled_error(self):
 		"""
 		Create account, then disable it, and try to authenticate against it,
@@ -1578,6 +1575,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_authenticate_disabled_error_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_authenticate_disabled_error()
+
+
 	def test_ba_handler_authenticate_username_not_ok(self):
 		"""
 		Create account, try to authenticate but using a username that
@@ -1604,6 +1607,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_authenticate_username_not_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_authenticate_username_not_ok()
 
 
 	def test_ba_handler_authenticate_password_not_ok(self):
@@ -1633,6 +1642,12 @@ class TestHttpHandlers(unittest.TestCase):
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
+	
+	def test_ba_handler_authenticate_password_not_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_authenticate_password_not_ok()
+
 
 	def test_ba_handler_authenticate_username_missing(self):
 		"""
@@ -1659,6 +1674,11 @@ class TestHttpHandlers(unittest.TestCase):
                 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+	
+	def test_ba_handler_authenticate_username_missing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+		self.test_ba_handler_authenticate_username_missing()
 
 
 	def test_ba_handler_authenticate_password_missing(self):
@@ -1689,6 +1709,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_authenticate_password_missing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_authenticate_password_missing()
+
+		
 	def test_ba_handler_authenticate_db_comm_error(self):
 		"""
 		Create account, try to authenticate using valid username and
@@ -1720,6 +1746,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 		ba_core.BA_DB_NAME = ba_core_db_name_orig
+
+
+	def test_ba_handler_authenticate_db_comm_error_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_authenticate_db_comm_error()
 
 
 	### User create
@@ -1842,7 +1874,7 @@ class TestHttpHandlers(unittest.TestCase):
 		valid username, valid password. Do this multiple times.
 		"""
 
-		self.assertTrue(unittest.ba_db_connect_tested)
+		#self.assertTrue(unittest.ba_db_connect_tested)
 
 		db_account_state_before = self.__account_dump_all()
 
@@ -1922,6 +1954,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_account_create_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_create_ok()
+
+
 	def test_ba_handler_account_create_username_not_ok(self):
 		"""
 		Attempt to create an account with an invalid username.
@@ -1947,6 +1985,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_account_create_username_not_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_create_username_not_ok()
+
+
 	def test_ba_handler_account_create_password_not_ok(self):
 		"""
 		Attempt to create an account with an invalid password.
@@ -1970,6 +2014,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_create_password_not_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_create_password_not_ok()
 
 
 	def test_ba_handler_account_create_username_missing(self):
@@ -1998,6 +2048,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_account_create_username_missing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_create_username_missing()
+
+
 	def test_ba_handler_account_create_password_missing(self):
 		"""
 		Attempt to create an account with a valid username,
@@ -2013,7 +2069,6 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', "someuser1", None)
 
 
-
 		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username and/or password missing"}'))
@@ -2021,6 +2076,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_create_password_missing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_create_password_missing()
 
 
 	def test_ba_handler_account_create_account_exists(self):
@@ -2057,6 +2118,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_account_create_account_exists_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_create_account_exists()
+
+
 	def test_ba_handler_account_create_db_comm_error(self):
 		"""
 		Attempt to create an account, but simulate that
@@ -2087,6 +2154,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_create_db_comm_error_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_create_db_comm_error()
 
 
 	### Account exists
@@ -2210,6 +2283,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_account_exists_username_not_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_exists_username_not_ok()
+
+
 	def test_ba_handler_account_exists_username_missing(self):
 		"""
 		Check if account exists, with no username (but password).
@@ -2235,6 +2314,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_exists_username_missing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_exists_username_missing()
 
 
 	def test_ba_handler_account_exists_db_comm_error(self):
@@ -2268,6 +2353,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_account_exists_db_comm_error_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_exists_db_comm_error()
+
+
 	def test_ba_handler_account_exists_ok(self):
 		"""
 		Check if account exists, with a valid username,
@@ -2299,6 +2390,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_account_exists_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_exists_ok()
+
+
 	def test_ba_handler_account_exists_no_account_existing(self):
 		"""
 		Check if account exists when it does not.
@@ -2328,6 +2425,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_exists_no_account_existing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_exists_no_account_existing()
 
 
 	### Password change 
@@ -2472,7 +2575,6 @@ class TestHttpHandlers(unittest.TestCase):
 			"someusername---", 'atleastpasswordB')
 
 
-
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username is not acceptable"}'))
@@ -2481,6 +2583,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_passwordchange_username_not_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_passwordchange_username_not_ok()
 
 
 	def test_ba_handler_account_passwordchange_password_not_ok(self):
@@ -2500,7 +2608,6 @@ class TestHttpHandlers(unittest.TestCase):
 			'someusername', 'atleastpassword' + chr(5))
 
 
-
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Password is not acceptable"}'))
@@ -2509,6 +2616,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_passwordchange_password_not_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_passwordchange_password_not_ok()
 
 
 	def test_ba_handler_account_passwordchange_username_missing(self):
@@ -2540,6 +2653,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_account_passwordchange_username_missing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_passwordchange_username_missing()
+
+
 	def test_ba_handler_account_passwordchange_password_missing(self):
 		"""
 		Check if account exists, with no password (but username).
@@ -2558,7 +2677,6 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser', None)
 
 
-
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Username and/or password missing"}'))
@@ -2567,6 +2685,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_passwordchange_password_missing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_passwordchange_password_missing()
 
 
 	def test_ba_handler_account_passwordchange_username_and_password_missing(self):
@@ -2595,6 +2719,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_passwordchange_username_and_password_missing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_passwordchange_username_and_password_missing()
 
 
 	def test_ba_handler_account_passwordchange_db_comm_error(self):
@@ -2628,6 +2758,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_passwordchange_db_comm_error_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_passwordchange_db_comm_error()
 
 
 	def test_ba_handler_account_passwordchange_ok(self):
@@ -2784,6 +2920,13 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 		self.assertTrue(db_did_find_change)
 
+
+	def test_ba_handler_account_passwordchange_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_passwordchange_ok()
+
+
 	def test_ba_handler_account_passwordchange_no_account_existing(self):
 		"""
 		Check if username exists with an account that does
@@ -2814,6 +2957,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_passwordchange_no_account_existing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_passwordchange_no_account_existing()
 
 
 	### Enable account 
@@ -2937,6 +3086,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_account_enable_username_not_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_enable_username_not_ok()
+
+
 	def test_ba_handler_account_enable_username_missing(self):
 		"""
 		Check if account exists, with no username (but password).
@@ -2963,6 +3118,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_enable_username_missing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_enable_username_missing()
 
 
 	def test_ba_handler_account_enable_db_comm_error(self):
@@ -2996,6 +3157,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_enable_db_comm_error_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_enable_db_comm_error()
 
 
 	def test_ba_handler_account_enable_ok(self):
@@ -3132,6 +3299,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertTrue(db_did_find_change)
 
 
+	def test_ba_handler_account_enable_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_enable_ok()
+
+
 	def test_ba_handler_account_enable_no_account_existing(self):
 		"""
 		Check if username exists with an account that does
@@ -3162,6 +3335,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_enable_no_account_existing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_enable_no_account_existing()
 
 
 	### Disable account 
@@ -3287,6 +3466,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
+	def test_ba_handler_account_disable_username_not_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_disable_username_not_ok()
+
+
 	def test_ba_handler_account_disable_username_missing(self):
 		"""
 		Check if account exists, with no username (but password).
@@ -3313,6 +3498,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_disable_username_missing_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_disable_username_missing()
 
 
 	def test_ba_handler_account_disable_db_comm_error(self):
@@ -3346,6 +3537,12 @@ class TestHttpHandlers(unittest.TestCase):
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
+
+
+	def test_ba_handler_account_disable_db_comm_error_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_disable_db_comm_error()
 
 
 	def test_ba_handler_account_disable_ok(self):
@@ -3459,6 +3656,12 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertTrue(db_did_find_change)
 
 
+	def test_ba_handler_account_disable_ok_mohawk_off(self):
+		ba_core.BA_MOHAWK_ENABLED = 0
+
+		self.test_ba_handler_account_disable_ok()
+
+
 	def test_ba_handler_account_disable_no_account_existing(self):
 		"""
 		Check if username exists with a account that does
@@ -3490,6 +3693,11 @@ class TestHttpHandlers(unittest.TestCase):
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
+
+		def test_ba_handler_account_disable_no_account_existing_mohawk_off(self):
+			ba_core.BA_MOHAWK_ENABLED = 0
+
+			self.test_ba_handler_account_disable_no_account_existing()
 
 
 if __name__ == '__main__':
