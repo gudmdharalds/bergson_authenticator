@@ -2,7 +2,7 @@
 
 This is a microservice intended to serve as a standalone backend for authentication only. This entails that the microservice is only able to create accounts with specific usernames and passwords, but does not store any meta-data about the account (e.g. name of account holder). It does allow for resetting of passwords, and enabling and disabling of accounts. 
 
-The microservice is mostly useful in those cases where another service handles granting and enforcement of authorization, but does not implement account-storage and management thereof. 
+The microservice is mostly useful in those cases where another service handles granting and enforcement of authorization, but does not store passwords for accounts and management thereof. 
 
 The microservice uses MySQL as database source. Database engine can be changed be supplying a different connector, although some SQL queries might need a rewrite.
 
@@ -212,19 +212,21 @@ Also, Apache must be configured to pass on the HTTP Authorization header. An exa
 
 ```
 <VirtualHost myhost:80>
-        DocumentRoot "/var/www/mypythonstuff/"
+        DocumentRoot "my-path-to-installation/code/"
         ServerName myhost
 
-        WSGIScriptAlias / /var/www/mypythonstuff/index.wsgi
+        WSGIScriptAlias / my-path-to-installation/code/index.wsgi
         WSGIPassAuthorization On
 
-        <Directory "/var/www/mypythonstuff/">
+        <Directory "my-path-to-installation/code/">
                 Options Indexes FollowSymLinks
                 AllowOverride all
                 Require all granted
         </Directory>
 </VirtualHost>
 ```
+
+Note that the "my-path-to-installation/code" needs to be replaced with full-path to the folder where the authenticator code lives.
 
 Otherwise, the instructions referred to above should work.
 
@@ -244,4 +246,8 @@ python tests.py -v
 
 Note that Mohawk has to be installed for this to work, and you must have the database-connection correctly set up. In addition, the user must have full access (i.e. DROP, CREATE, SELECT, INSERT, UPDATE) to a database that bears the same name as the configured database, but with the '_test' suffix.
 
+# TODO
+
+- Implement really simple ACL so that callers can have assigned endpoints to them
+- Tests should perhaps run with, and without Mohawk enabled.
 

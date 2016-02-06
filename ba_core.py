@@ -15,7 +15,7 @@ import time
 import wsgiref.simple_server as wsgi_simple_server
 
 # Import config-file
-from config import *
+import config as ba_config
 
 
 class BAPathDispatcher:
@@ -195,8 +195,12 @@ def ba_db_connect():
 	Try to connect to DB, as per configuration.
 	"""
 
-	db_conn = MySQLdb.connect(BA_DB_SERVER, BA_DB_USERNAME, 
-		BA_DB_PASSWORD, BA_DB_NAME)
+	db_conn = MySQLdb.connect(
+		ba_config.BA_DB_SERVER,
+		ba_config.BA_DB_USERNAME, 
+		ba_config.BA_DB_PASSWORD, 
+		ba_config.BA_DB_NAME
+	)
 
 	return db_conn
 
@@ -345,8 +349,8 @@ def ba_signature_lookup_sender(sender_id):
 	This includes unique secret key.
 	"""
 
-	if (BA_MOHAWK_SENDERS.has_key(sender_id)):
-		return BA_MOHAWK_SENDERS[sender_id]
+	if (ba_config.BA_MOHAWK_SENDERS.has_key(sender_id)):
+		return ba_config.BA_MOHAWK_SENDERS[sender_id]
 
 	else:
 		raise LookupError('unknown sender')
@@ -396,7 +400,7 @@ def ba_signature(db_conn, http_environ, data):
 
 		if (random.randint(0, 100) <= 2):
 			db_cursor = db_conn.cursor()
-			db_cursor.execute("DELETE FROM nonce WHERE timestamp < %s", [timestamp_now - (BA_MOHAWK_NONCE_EXPIRY * 10)] )
+			db_cursor.execute("DELETE FROM nonce WHERE timestamp < %s", [timestamp_now - (ba_config.BA_MOHAWK_NONCE_EXPIRY * 10)] )
 			db_cursor.close()
 
 			db_conn.commit()
@@ -441,7 +445,7 @@ def ba_signature(db_conn, http_environ, data):
 		###################
 
 
-	if (BA_MOHAWK_ENABLED == 1):
+	if (ba_config.BA_MOHAWK_ENABLED == 1):
 		#
 		# Try to verify authenticity of the request received --
 		# an exception will be raised by Mohawk if there is any
@@ -455,7 +459,7 @@ def ba_signature(db_conn, http_environ, data):
 			http_environ['REQUEST_METHOD'], 		# Request method type
 			content=data.encode("utf8"), 			# UTF-8 encode the data
 			content_type=http_environ['CONTENT_TYPE'],	# Content-type header used
-			timestamp_skew_in_seconds=BA_MOHAWK_NONCE_EXPIRY,	# Default expiry of nonce tokens
+			timestamp_skew_in_seconds=ba_config.BA_MOHAWK_NONCE_EXPIRY,	# Default expiry of nonce tokens
 			seen_nonce=ba_signature_nonce_seen	# nonce token checker
 		)
 
@@ -463,7 +467,7 @@ def ba_signature(db_conn, http_environ, data):
 	# Authorization-header -- this is to safeguard against
 	# accidentally turning off verification.
 
-	elif (BA_MOHAWK_ENABLED == 0):
+	elif (ba_config.BA_MOHAWK_ENABLED == 0):
 		assert (http_environ.has_key('HTTP_AUTHORIZATION') != True)
 
 		return None
@@ -552,6 +556,7 @@ def ba_handler_authenticate(http_environ, start_response, args_extra):
 		mohawk_sig_res = ba_signature(db_conn, http_environ, 'username=' + req_username + '&' + 'password=' + req_password)
 
 	except:
+		# Note: Do never return the exception string from mohawk, it might contain the secret MAC
 		return ba_http_resp_json(None, start_response, 403, None, { 'error': 'Signature validation of your request failed.' })
 
 

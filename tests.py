@@ -663,8 +663,8 @@ class TestDBRoutines(unittest.TestCase):
 		unittest.ba_db_connect_tested = True
 
 		# Make sure we will be connecting to a test-database
-		self.assertEqual(ba_core.BA_DB_NAME.rfind('_test'), len(ba_core.BA_DB_NAME) - len('_test'))
-		self.assertEqual(ba_core.BA_DB_NAME.split('_test'), [ ba_core.BA_DB_NAME_NOT_TESTING, '' ])
+		self.assertEqual(ba_core.ba_config.BA_DB_NAME.rfind('_test'), len(ba_core.ba_config.BA_DB_NAME) - len('_test'))
+		self.assertEqual(ba_core.ba_config.BA_DB_NAME.split('_test'), [ ba_core.ba_config.BA_DB_NAME_NOT_TESTING, '' ])
 
 		db_conn = ba_core.ba_db_connect()
 
@@ -777,7 +777,7 @@ class TestMowhak(unittest.TestCase):
 		#
 
 		self.assertEqual(ba_core.ba_signature_lookup_sender('testing_entry'), 
-			ba_core.BA_MOHAWK_SENDERS['testing_entry'])
+			ba_core.ba_config.BA_MOHAWK_SENDERS['testing_entry'])
 
 		
 		# These sender_id's do not exist
@@ -1020,13 +1020,13 @@ class TestMowhak(unittest.TestCase):
 			# Try to validate request using Mohawk
 			# 
 
-			ba_core.BA_MOHAWK_ENABLED = 0
+			ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 			# Mohawk will throw an exception if validation
 			# fails. We do not have to.
 			ba_core.ba_signature(self.db_conn, http_environ, req_data_mohawk_test)
 
-			ba_core.BA_MOHAWK_ENABLED = 1
+			ba_core.ba_config.BA_MOHAWK_ENABLED = 1
 
 
 	def test_ba_signature_mohawk_off_auth_headers_sent(self):
@@ -1064,7 +1064,7 @@ class TestMowhak(unittest.TestCase):
 	
 			http_environ['HTTP_AUTHORIZATION'] = sender.request_header
 
-			ba_core.BA_MOHAWK_ENABLED = 0
+			ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 	
 			#
 			# Try to validate request  
@@ -1073,7 +1073,7 @@ class TestMowhak(unittest.TestCase):
 			with self.assertRaises(AssertionError):
 				ba_core.ba_signature(self.db_conn, http_environ, req_data_mohawk_test)
 
-			ba_core.BA_MOHAWK_ENABLED = 1
+			ba_core.ba_config.BA_MOHAWK_ENABLED = 1
  
 
 class TestPasswordFuncs(unittest.TestCase):
@@ -1144,9 +1144,9 @@ class TestHttpHandlers(unittest.TestCase):
 		that we might need.
 		"""
 
-		ba_core.BA_DB_NAME = ba_core.ORIG_CONFIG_BA_DB_NAME 
-		ba_core.BA_MOHAWK_ENABLED = ba_core.ORIG_CONFIG_BA_MOHAWK_ENABLED
-		ba_core.BA_MOHAWK_SENDERS = ba_core.ORIG_CONFIG_BA_MOHAWK_SENDERS 
+		ba_core.ba_config.BA_DB_NAME = ba_core.ba_config.ORIG_CONFIG_BA_DB_NAME 
+		ba_core.ba_config.BA_MOHAWK_ENABLED = ba_core.ba_config.ORIG_CONFIG_BA_MOHAWK_ENABLED
+		ba_core.ba_config.BA_MOHAWK_SENDERS = ba_core.ba_config.ORIG_CONFIG_BA_MOHAWK_SENDERS 
 
 		# Make sure all tables exist
 		ba_core.ba_db_create_tables()
@@ -1268,7 +1268,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 			mohawk_sender_data['content'] += 'password=' + http_parsed_params['password']
 
-		if (ba_core.BA_MOHAWK_ENABLED == 1):
+		if (ba_core.ba_config.BA_MOHAWK_ENABLED == 1):
 			mohawk_sender_sig = mohawk.Sender(ba_core.ba_signature_lookup_sender(mohawk_sender_id),
 				"http://" + http_req['host'] + http_req['path'] + "",
 				http_req['method'],
@@ -1277,7 +1277,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 			http_parsed_environ['HTTP_AUTHORIZATION'] = mohawk_sender_sig.request_header
 
-		elif (ba_core.BA_MOHAWK_ENABLED == 0):
+		elif (ba_core.ba_config.BA_MOHAWK_ENABLED == 0):
 			mohawk_sender_sig = None
 
 		return (http_server, http_client, http_req, http_req_params, http_parsed_environ, mohawk_sender_sig)
@@ -1470,7 +1470,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_authenticate_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_authenticate_ok()
 
@@ -1531,7 +1531,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_authenticate_ok_sometimes_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_authenticate_ok_sometimes()
 
@@ -1576,7 +1576,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_authenticate_disabled_error_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_authenticate_disabled_error()
 
@@ -1610,7 +1610,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_authenticate_username_not_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_authenticate_username_not_ok()
 
@@ -1644,7 +1644,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 	
 	def test_ba_handler_authenticate_password_not_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_authenticate_password_not_ok()
 
@@ -1677,7 +1677,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 	
 	def test_ba_handler_authenticate_username_missing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 		self.test_ba_handler_authenticate_username_missing()
 
 
@@ -1710,7 +1710,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_authenticate_password_missing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_authenticate_password_missing()
 
@@ -1732,8 +1732,8 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/authenticate', 'POST', "someuser1", "otherPassWorddd")
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
-		ba_core.BA_DB_NAME += "-------------------"
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
+		ba_core.ba_config.BA_DB_NAME += "-------------------"
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -1745,11 +1745,11 @@ class TestHttpHandlers(unittest.TestCase):
                 self.assertEqual(db_account_state_before, db_account_state_after)
 
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 
 	def test_ba_handler_authenticate_db_comm_error_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_authenticate_db_comm_error()
 
@@ -1955,7 +1955,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_create_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_create_ok()
 
@@ -1986,7 +1986,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_create_username_not_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_create_username_not_ok()
 
@@ -2017,7 +2017,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_create_password_not_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_create_password_not_ok()
 
@@ -2049,7 +2049,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_create_username_missing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_create_username_missing()
 
@@ -2079,7 +2079,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_create_password_missing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_create_password_missing()
 
@@ -2119,7 +2119,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_create_account_exists_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_create_account_exists()
 
@@ -2141,15 +2141,15 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/create', 'POST', "someuser1", "otherPassWorddd")
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
-		ba_core.BA_DB_NAME += "-------------------"
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
+		ba_core.ba_config.BA_DB_NAME += "-------------------"
 
 		auth_handler_ret = ba_core.ba_handler_account_create(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 
 		db_account_state_after = self.__account_dump_all()
@@ -2157,7 +2157,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_create_db_comm_error_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_create_db_comm_error()
 
@@ -2284,7 +2284,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_exists_username_not_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_exists_username_not_ok()
 
@@ -2317,7 +2317,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_exists_username_missing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_exists_username_missing()
 
@@ -2339,22 +2339,22 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', "someuser1", None)
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
-		ba_core.BA_DB_NAME += "-------------------"
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
+		ba_core.ba_config.BA_DB_NAME += "-------------------"
 
 		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 		db_account_state_after = self.__account_dump_all()
 		self.assertEqual(db_account_state_before, db_account_state_after)
 
 
 	def test_ba_handler_account_exists_db_comm_error_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_exists_db_comm_error()
 
@@ -2376,14 +2376,14 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', "someuser1", None)
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"status": 1, "message": "Account exists"}'))
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 
 		db_account_state_after = self.__account_dump_all()
@@ -2391,7 +2391,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_exists_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_exists_ok()
 
@@ -2413,14 +2413,14 @@ class TestHttpHandlers(unittest.TestCase):
 			mohawk_sender_sig) = self.__gen_basic_http_req('/v1/account/exists', 'GET', "someuser2", None)
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_exists(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Account does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 
 		db_account_state_after = self.__account_dump_all()
@@ -2428,7 +2428,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_exists_no_account_existing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_exists_no_account_existing()
 
@@ -2586,7 +2586,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_passwordchange_username_not_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_passwordchange_username_not_ok()
 
@@ -2619,7 +2619,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_passwordchange_password_not_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_passwordchange_password_not_ok()
 
@@ -2654,7 +2654,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_passwordchange_username_missing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_passwordchange_username_missing()
 
@@ -2688,7 +2688,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_passwordchange_password_missing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_passwordchange_password_missing()
 
@@ -2722,7 +2722,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_passwordchange_username_and_password_missing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_passwordchange_username_and_password_missing()
 
@@ -2745,15 +2745,15 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'otherPassWorddd')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
-		ba_core.BA_DB_NAME += "-------------------"
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
+		ba_core.ba_config.BA_DB_NAME += "-------------------"
 
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 
 		db_account_state_after = self.__account_dump_all()
@@ -2761,7 +2761,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_passwordchange_db_comm_error_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_passwordchange_db_comm_error()
 
@@ -2788,7 +2788,7 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'otherPassWorddd')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -2805,7 +2805,7 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'other15000PPaSS')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -2822,7 +2822,7 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'other15000PPaSS')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
@@ -2839,7 +2839,7 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'other15000PPaSS')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -2856,7 +2856,7 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'otherPassWorddd')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -2864,7 +2864,7 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 
 		#
@@ -2922,7 +2922,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_passwordchange_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_passwordchange_ok()
 
@@ -2945,14 +2945,14 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser2', 'otherPassWorddd')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_passwordchange(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Account does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 
 		db_account_state_after = self.__account_dump_all()
@@ -2960,7 +2960,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_passwordchange_no_account_existing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_passwordchange_no_account_existing()
 
@@ -3087,7 +3087,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_enable_username_not_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_enable_username_not_ok()
 
@@ -3121,7 +3121,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_enable_username_missing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_enable_username_missing()
 
@@ -3144,15 +3144,15 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
-		ba_core.BA_DB_NAME += "-------------------"
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
+		ba_core.ba_config.BA_DB_NAME += "-------------------"
 
 		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 
 		db_account_state_after = self.__account_dump_all()
@@ -3160,7 +3160,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_enable_db_comm_error_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_enable_db_comm_error()
 
@@ -3187,7 +3187,7 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'otherPassWorddd')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -3214,7 +3214,7 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'otherPassWorddd')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -3231,7 +3231,7 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 
@@ -3248,7 +3248,7 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'otherPassWorddd')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -3256,7 +3256,7 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '200 OK')
 
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 
 		#
@@ -3300,7 +3300,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_enable_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_enable_ok()
 
@@ -3323,14 +3323,14 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser2')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_enable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Account does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 
 		db_account_state_after = self.__account_dump_all()
@@ -3338,7 +3338,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_enable_no_account_existing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_enable_no_account_existing()
 
@@ -3467,7 +3467,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_disable_username_not_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_disable_username_not_ok()
 
@@ -3501,7 +3501,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_disable_username_missing_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_disable_username_missing()
 
@@ -3524,15 +3524,15 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
-		ba_core.BA_DB_NAME += "-------------------"
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
+		ba_core.ba_config.BA_DB_NAME += "-------------------"
 
 		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Database communication error"}'))
 		self.assertEqual(http_server.getinfo()[0], '500 Error')
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 
 		db_account_state_after = self.__account_dump_all()
@@ -3540,7 +3540,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_disable_db_comm_error_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_disable_db_comm_error()
 
@@ -3567,7 +3567,7 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'otherPassWorddd')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -3584,7 +3584,7 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 
@@ -3602,7 +3602,7 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser1', 'otherPassWorddd')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_authenticate(http_environ, http_server, None)
 
@@ -3610,7 +3610,7 @@ class TestHttpHandlers(unittest.TestCase):
 		self.assertEqual(http_server.getinfo()[0], '403 Error')
 
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 	
 		#
@@ -3657,7 +3657,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 	def test_ba_handler_account_disable_ok_mohawk_off(self):
-		ba_core.BA_MOHAWK_ENABLED = 0
+		ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 		self.test_ba_handler_account_disable_ok()
 
@@ -3680,14 +3680,14 @@ class TestHttpHandlers(unittest.TestCase):
 			'someuser2')
 
 
-		ba_core_db_name_orig = ba_core.BA_DB_NAME
+		ba_core_db_name_orig = ba_core.ba_config.BA_DB_NAME
 
 		auth_handler_ret = ba_core.ba_handler_account_disable(http_environ, http_server, None)
 
 		self.assertEqual(json.loads(auth_handler_ret), json.loads('{"error": "Account does not exist"}'))
 		self.assertEqual(http_server.getinfo()[0], '404 Not Found')
 
-		ba_core.BA_DB_NAME = ba_core_db_name_orig
+		ba_core.ba_config.BA_DB_NAME = ba_core_db_name_orig
 
 	
 		db_account_state_after = self.__account_dump_all()
@@ -3695,7 +3695,7 @@ class TestHttpHandlers(unittest.TestCase):
 
 
 		def test_ba_handler_account_disable_no_account_existing_mohawk_off(self):
-			ba_core.BA_MOHAWK_ENABLED = 0
+			ba_core.ba_config.BA_MOHAWK_ENABLED = 0
 
 			self.test_ba_handler_account_disable_no_account_existing()
 
@@ -3705,13 +3705,13 @@ if __name__ == '__main__':
 
 	# Make sure we employ the test database here
 
-	ba_core.BA_DB_NAME_NOT_TESTING = ba_core.BA_DB_NAME
-	ba_core.BA_DB_NAME = ba_core.BA_DB_NAME + "_test"
+	ba_core.ba_config.BA_DB_NAME_NOT_TESTING = ba_core.ba_config.BA_DB_NAME
+	ba_core.ba_config.BA_DB_NAME = ba_core.ba_config.BA_DB_NAME_TEST
 
 	# Create mock sender_id for Mowhak testing
 
-	ba_core.BA_MOHAWK_ENABLED = 1
-	ba_core.BA_MOHAWK_SENDERS = { 
+	ba_core.ba_config.BA_MOHAWK_ENABLED = 1
+	ba_core.ba_config.BA_MOHAWK_SENDERS = { 
 		'testing_entry': {
 				'id':		'testing_entry',
 				'key':		'ff1a7e041a77f4995cc9337587b004edd1477ddda5fac8ed539890cbc91829af',
@@ -3720,9 +3720,9 @@ if __name__ == '__main__':
 	}
 
 
-	ba_core.ORIG_CONFIG_BA_DB_NAME = ba_core.BA_DB_NAME
-	ba_core.ORIG_CONFIG_BA_MOHAWK_ENABLED = ba_core.BA_MOHAWK_ENABLED
-	ba_core.ORIG_CONFIG_BA_MOHAWK_SENDERS = ba_core.BA_MOHAWK_SENDERS
+	ba_core.ba_config.ORIG_CONFIG_BA_DB_NAME = ba_core.ba_config.BA_DB_NAME
+	ba_core.ba_config.ORIG_CONFIG_BA_MOHAWK_ENABLED = ba_core.ba_config.BA_MOHAWK_ENABLED
+	ba_core.ba_config.ORIG_CONFIG_BA_MOHAWK_SENDERS = ba_core.ba_config.BA_MOHAWK_SENDERS
 
 	unittest.ba_db_connect_tested = False
 	

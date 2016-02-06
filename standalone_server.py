@@ -43,9 +43,9 @@ if __name__ == '__main__':
 
 	dispatcher = ba_dispatcher_init()
 
-	httpd = wsgi_simple_server.make_server(BA_STANDALONE_SERVER_ADDR, BA_STANDALONE_SERVER_PORT, dispatcher)
+	httpd = wsgi_simple_server.make_server(ba_config.BA_STANDALONE_SERVER_ADDR, ba_config.BA_STANDALONE_SERVER_PORT, dispatcher)
 
-	print('Now serving on port ' + BA_STANDALONE_SERVER_ADDR + ':' + str(BA_STANDALONE_SERVER_PORT))
+	print('Now serving on port ' + ba_config.BA_STANDALONE_SERVER_ADDR + ':' + str(ba_config.BA_STANDALONE_SERVER_PORT))
 	print('Waiting for requests ... ')
 
 	httpd.serve_forever()
