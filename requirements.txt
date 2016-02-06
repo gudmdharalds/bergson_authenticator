@@ -1,6 +1,17 @@
+# sha256: gRBAtkfl1WhvhNtBXv1pfmJQAIsRK2kJunesBZ4UDHQ
 MySQL-python==1.2.5
+
+# sha256: bTQq23PdhjlrfGBPbaRzv5jrU1bmi5nJE6MKXmSDLgM
 backports.pbkdf2==0.1
+
+# sha256: SNZPN8Hy9utro7Xy2LDByQ4offLtH9-Ah0_tDDYJ61I
 mohawk==0.3.0
+
+# sha256: hP6NW_Tc3MSQAkRsR6FG0XrBD6zwDZCGZZBkrEO2wls
 requests==2.8.1
+
+# sha256: EF-NaGFvgkjiS_DpNy7wTTzBAQTxmA9U1Xss5zpa1Wo
 six==1.10.0
+
+# sha256: x-YQyACVcEbATIAUqrjM6PC58ElcjNNJ5XwffKv0Dnk
 wsgiref==0.1.2
