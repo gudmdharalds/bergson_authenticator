@@ -244,7 +244,7 @@ python tests.py -v
 
 ```
 
-Note that Mohawk has to be installed for this to work, and you must have the database-connection correctly set up. In addition, the user must have full access (i.e. DROP, CREATE, SELECT, INSERT, UPDATE) to a database that bears the same name as the configured database, but with the '_test' suffix.
+Note that Mohawk has to be installed for this to work, and you must have the database-connection correctly set up. In addition, the user must have full access (i.e. DROP, CREATE, SELECT, INSERT, UPDATE) to a test-database. The name of this database is configurable in the config-file.
 
 # TODO
 
