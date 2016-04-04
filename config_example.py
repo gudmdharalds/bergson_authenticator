@@ -64,7 +64,7 @@ BA_MOHAWK_SENDERS = {
 # In this example, 'someone' has access 
 # to '/v1/account/authenticate', and
 # 'otherone' has access to anything that
-# begins with '/v1/acccount/::0'
+# begins with '/v1/acccount/'
 #
 
 BA_MOHAWK_PEER_PERMISSIONS = {
