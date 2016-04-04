@@ -13,6 +13,7 @@ It allows for:
 - disabling and enabling accounts
 - changing password of accounts
 - optionally uses [Mohawk](https://github.com/kumar303/mohawk/) to validate requested data, assuring that only holders of a secret-key can use the webservice. Note that this does not equal encryption.
+- uses Mohawk to control access to resources. The access is based on URLs.
 
 Note: If Mohawk is disabled, but clients still issue Authorization-headers, the webservice will return with an error. This is to catch those accidental cases where verification is silently turned off. 
 
@@ -239,15 +240,20 @@ This project comes with a through unit-testing suite. This includes  testing the
 To run the test-suite, first set up Bergson as advised above, then run:
 
 ```
-
 python tests.py -v 
 
 ```
 
 Note that Mohawk has to be installed for this to work, and you must have the database-connection correctly set up. In addition, the user must have full access (i.e. DROP, CREATE, SELECT, INSERT, UPDATE) to a test-database. The name of this database is configurable in the config-file.
 
-# TODO
+Also note that the test might print out the following text while texting:
 
-- Implement really simple ACL so that callers can have assigned endpoints to them
-- Tests should perhaps run with, and without Mohawk enabled.
+```
+No handlers could be found for logger "mohawk.base"
+```
+
+this can be safely ignored.
+
+
+
 

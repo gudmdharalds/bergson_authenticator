@@ -55,3 +55,30 @@ BA_MOHAWK_SENDERS = {
 
 }
 
+
+#
+# Specify which Hawk-IDs have access to
+# what endpoints. You can use ::0 as a
+# wildcard.
+#
+# In this example, 'someone' has access 
+# to '/v1/account/authenticate', and
+# 'otherone' has access to anything that
+# begins with '/v1/acccount/::0'
+#
+
+BA_MOHAWK_PEER_PERMISSIONS = {
+	'someone': {
+		'endpoints': [
+			'/v1/account/authenticate'
+		]
+	},
+
+	'otherone': {
+		'endpoints': [
+			'/v1/account/::0'
+		]
+	}
+}
+
+
